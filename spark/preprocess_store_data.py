@@ -93,9 +93,10 @@ class PreprocessTransferDataToDB:
     def import_data_to_db(df):
         host = '10.0.0.14'
         port = '5432'
+        
+        database = 'postgres'
         username = 'postgres'
         password = ''
-        database = 'postgres'
 
         table = 'gdelt_events'
         mode = 'append'
