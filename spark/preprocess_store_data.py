@@ -6,11 +6,10 @@ Email:  artsiom.vs@gmail.com
 
 from pyspark.sql import SparkSession
 from pyspark.sql import SQLContext
-from pyspark.sql import functions as F
-from pyspark.sql.types import StringType, IntegerType
-import postgres
+#from pyspark.sql import functions as F
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
-from pyspark.sql.types import *
+import postgres
 
 
 class PreprocessTransferDataToDB:
@@ -23,6 +22,7 @@ class PreprocessTransferDataToDB:
 
         self.file_path = file_path
     
+
     # def define_gdelt_schema():
     #     table_schema = StructType( [ StructField('GLOBALEVENTID', StringType(), True),
     #                                  StructField('SQLDATE', StringType(), True),
@@ -30,44 +30,45 @@ class PreprocessTransferDataToDB:
     #                                ])
     #     return table_schema
 
+
     def read_csv_from_s3(self):
         # df = self.spark.read.parquet(self.file_path)
 
         # 25 columns for now
-        table_schema = StructType( [ StructField('GlobalEventID', StringType(), True),
-                                     StructField('SqlDate', StringType(), True),
+        table_schema = StructType( [ StructField('GlobalEventID', StringType(), False),
+                                     StructField('SqlDate', StringType(), False),
                                      StructField('MonthYear', IntegerType(), False),
                                      StructField('Year', IntegerType(), False), 
                                      StructField('FractionDate', StringType(), False),
 
                                      StructField('Actor1Code', StringType(), False),
                                      StructField('Actor1Name', StringType(), False),
-                                     StructField('Actor1CountryCode', StringType(), False),
-                                     StructField('Actor1KnownGroupCode', StringType(), False),
-                                     StructField('Actor1EthnicCode', StringType(), False),
-                                     StructField('Actor1Religion1Code', StringType(), False),
-                                     StructField('Actor1Religion2Code', StringType(), False),
-                                     StructField('Actor1Type1Code', StringType(), False),
-                                     StructField('Actor1Type2Code', StringType(), False),
-                                     StructField('Actor1Type3Code', StringType(), False),
+                                     StructField('Actor1CountryCode', StringType(), True),
+                                     StructField('Actor1KnownGroupCode', StringType(), True),
+                                     StructField('Actor1EthnicCode', StringType(), True),
+                                     StructField('Actor1Religion1Code', StringType(), True),
+                                     StructField('Actor1Religion2Code', StringType(), True),
+                                     StructField('Actor1Type1Code', StringType(), True),
+                                     StructField('Actor1Type2Code', StringType(), True),
+                                     StructField('Actor1Type3Code', StringType(), True),
 
                                      StructField('Actor2Code', StringType(), False),
                                      StructField('Actor2Name', StringType(), False),
                                      StructField('Actor2CountryCode', StringType(), False),
-                                     StructField('Actor2KnownGroupCode', StringType(), False),
-                                     StructField('Actor2EthnicCode', StringType(), False),
-                                     StructField('Actor2Religion1Code', StringType(), False),
-                                     StructField('Actor2Religion2Code', StringType(), False),
-                                     StructField('Actor2Type1Code', StringType(), False),
-                                     StructField('Actor2Type2Code', StringType(), False),
-                                     StructField('Actor2Type3Code', StringType(), False)
+                                     StructField('Actor2KnownGroupCode', StringType(), True),
+                                     StructField('Actor2EthnicCode', StringType(), True),
+                                     StructField('Actor2Religion1Code', StringType(), True),
+                                     StructField('Actor2Religion2Code', StringType(), True),
+                                     StructField('Actor2Type1Code', StringType(), True),
+                                     StructField('Actor2Type2Code', StringType(), True),
+                                     StructField('Actor2Type3Code', StringType(), True)
                                    ])
-
+        
         df = self.spark.read.format('csv')\
                             .options(header='false', inferSchema='false', delimeter='\t')\
                             .schema(table_schema)\
                             .load(self.file_path)
-
+        
         df.printSchema()
         print()
         df.show()
@@ -88,8 +89,26 @@ class PreprocessTransferDataToDB:
     #     df = df.drop('FractionDate','DATEADDED')
     #     return df
 
+
     def import_data_to_db(df):
+        host = '10.0.0.14'
+        port = '5432'
+        username = 'postgres'
+        password = ''
+        database = 'postgres'
+
+        table = 'gdelt_events'
+        mode = 'append'
+        
+        conn = pgdb.connect(host=host, user=user, password=password, database=dbname)
+        conn = psycopg2.connect(database=database, user=username, password='',\
+                                host=host, port=port)
+        print("Connected to db!\n")
+        conn.close()
+        # connector = postgres.PostgresConnector()
+        # connector.write_to_db(df, table, mode)
         print('\n========== Loaded data into PostgreSQL! ==========\n')
+
 
     def run(self):
             in_df = self.read_csv_from_s3()
