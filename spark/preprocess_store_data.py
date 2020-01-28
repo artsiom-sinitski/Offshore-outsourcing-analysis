@@ -10,7 +10,7 @@ from pyspark.sql.types import StructType, StructField,\
                               StringType, IntegerType,\
                               DateType, BooleanType,\
                               FloatType
-import postgres
+from postgres_connector import PostgresConnector
 import logging
 
 
@@ -120,7 +120,7 @@ class PreprocessAndTransferDataToDB(object):
         df = df.withColumn('SqlDate', F.to_timestamp(df.SqlDate, format='yyyyMMdd'))
         df = df.withColumn('MonthYear', df.MonthYear.cast('INT'))
         df = df.withColumn('Year', df.Year.cast('INT'))
-        df = df.withColumn('FractionDate ', df.Year.cast('STRING'))
+        df = df.withColumn('FractionDate', df.FractionDate.cast('STRING'))
 
         df = df.withColumn('Actor1Code', df.Actor1Code.cast('STRING'))
         df = df.withColumn('Actor1Name', df.Actor1Name.cast('STRING'))
@@ -185,12 +185,12 @@ class PreprocessAndTransferDataToDB(object):
         return df
 
 
-    def write_events_to_db(df):
+    def write_events_to_db(self, data_frame):
         db_table = 'gdelt_v1_events'
         mode = 'append'
 
-        connector = postgres.PostgresConnector()
-        connector.write_data_to_db(df, db_table, mode)
+        connector = PostgresConnector()
+        connector.write_to_db(data_frame, db_table, mode)
         print('\n========== Loaded data into PostgreSQL ==========\n')
 
 
@@ -201,20 +201,20 @@ class PreprocessAndTransferDataToDB(object):
         out_df = self.transform_df(in_df)
         out_df.printSchema()
         
-        #self.write_events_to_db(in_df)
+        self.write_events_to_db(out_df)
 
 ###################### End of class PreprocessTransferDataToDB ########################
 #######################################################################################
 
 
 def main():
-    s3bucket_url = './data/'
-    file_name = '20160504.export-5.CSV'
-    file_path = s3bucket_url + file_name
-
-    # s3bucket_url = 's3a://gdelt-1/'
-    # file_name = '20160504.export.CSV'
+    # s3bucket_url = './data/'
+    # file_name = '20160504.export-5.CSV'
     # file_path = s3bucket_url + file_name
+
+    s3bucket_url = 's3a://gdelt-1/'
+    file_name = '20160504.export.CSV'
+    file_path = s3bucket_url + file_name
 
     process = PreprocessAndTransferDataToDB(file_path)
     process.run()
