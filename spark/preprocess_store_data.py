@@ -4,7 +4,7 @@ Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 """
 from pyspark.sql import SparkSession
-from pyspark.sql import SQLContext
+#from pyspark.sql import SQLContext
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField,\
                               StringType, IntegerType,\
@@ -22,7 +22,7 @@ class PreprocessAndTransferDataToDB(object):
         self.spark = SparkSession \
                     .builder \
                     .appName('store-data-to-db') \
-                    .config('spark.executor.memory', '6gb') \
+                    .config('spark.executor.memory', '2gb') \
                     .getOrCreate()
 
         self.file_path = file_path
@@ -101,23 +101,19 @@ class PreprocessAndTransferDataToDB(object):
         
         df = self.spark.read\
                        .format('csv')\
-                       .options(header='false', inferSchema='false', delimeter=self.delimeter)\
+                       .options(header='false', inferSchema='false', sep=self.delimeter)\
                        .schema(schema)\
                        .load(self.file_path)
-        
-        # df.printSchema()
-        # print()
-        # df.show()
         print('\n========== Loaded data into Spark object! ==========\n')
         return df
    
 
     def transform_df(self, df):
         """
-        Cast the column values to appropriate data types, so they match the database table schema
+        Cast the df column values to match the database table column data types.
         """
         df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
-        df = df.withColumn('SqlDate', F.to_timestamp(df.SqlDate, format='yyyyMMdd'))
+        df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
         df = df.withColumn('MonthYear', df.MonthYear.cast('INT'))
         df = df.withColumn('Year', df.Year.cast('INT'))
         df = df.withColumn('FractionDate', df.FractionDate.cast('STRING'))
@@ -179,7 +175,7 @@ class PreprocessAndTransferDataToDB(object):
         df = df.withColumn('ActionGeo_Long', df.ActionGeo_Long.cast('STRING'))
         df = df.withColumn('ActionGeo_FeatureID', df.ActionGeo_FeatureID.cast('STRING'))
 
-        df = df.withColumn('DateAdded', F.to_timestamp(df.DateAdded, format='yyyyMMdd'))
+        df = df.withColumn('DateAdded', F.to_date(df.DateAdded, format='yyyyMMdd'))
         df = df.withColumn('SourceUrl', df.SourceUrl.cast('STRING'))
 
         return df
@@ -197,9 +193,11 @@ class PreprocessAndTransferDataToDB(object):
     def run(self):
         in_df = self.read_csv_from_s3()
         in_df.printSchema()
+        in_df.show(3, False)
         
         out_df = self.transform_df(in_df)
         out_df.printSchema()
+        out_df.show(3, False)
         
         self.write_events_to_db(out_df)
 
@@ -223,4 +221,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+
     
