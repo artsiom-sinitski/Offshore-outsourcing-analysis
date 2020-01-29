@@ -22,15 +22,20 @@ class PreprocessAndTransferDataToDB(object):
         self.spark = SparkSession \
                     .builder \
                     .appName('store-data-to-db') \
-                    .config('spark.executor.memory', '2gb') \
+                    .config('spark.executor.memory', '6gb') \
                     .getOrCreate()
 
         self.file_path = file_path
         self.delimeter = '\t'
 
+        self.db_table = 'gdelt_v1_events'
+        self.mode = 'append'
+
 
     def read_csv_from_s3(self):
-
+        """
+        Reads the data from S3 storage and loads it into Spark's data frame object
+        """
         schema = StructType([
                             StructField('GlobalEventId', StringType(), False),
                             StructField('SqlDate', StringType(), False),
@@ -97,8 +102,7 @@ class PreprocessAndTransferDataToDB(object):
                             
                             StructField('DateAdded', StringType(), True),
                             StructField('SourceUrl', StringType(), True)
-                            ])
-        
+                           ])
         df = self.spark.read\
                        .format('csv')\
                        .options(header='false', inferSchema='false', sep=self.delimeter)\
@@ -182,18 +186,15 @@ class PreprocessAndTransferDataToDB(object):
 
 
     def write_events_to_db(self, data_frame):
-        db_table = 'gdelt_v1_events'
-        mode = 'append'
-
         connector = PostgresConnector()
-        connector.write_to_db(data_frame, db_table, mode)
+        connector.write_to_db(data_frame, self.db_table, self.mode)
         print('\n========== Loaded data into PostgreSQL ==========\n')
 
 
     def run(self):
         in_df = self.read_csv_from_s3()
         in_df.printSchema()
-        in_df.show(3, False)
+        in_df.show(3, False)  # False - don't truncate column's content
         
         out_df = self.transform_df(in_df)
         out_df.printSchema()
@@ -206,14 +207,15 @@ class PreprocessAndTransferDataToDB(object):
 
 
 def main():
-    # s3bucket_url = './data/'
-    # file_name = '20160504.export-5.CSV'
+    # s3bucket_url = 's3a://gdelt-1-test/'
+    # file_name = '20160504.export.CSV'
     # file_path = s3bucket_url + file_name
 
-    s3bucket_url = 's3a://gdelt-1/'
-    file_name = '20160504.export.CSV'
+    s3bucket_url = "s3a://gdelt-1/"
+    file_name = "*.CSV"
     file_path = s3bucket_url + file_name
 
+    # process = PreprocessAndTransferDataToDB(s3bucket_url)
     process = PreprocessAndTransferDataToDB(file_path)
     process.run()
     print('\n========== Moved data from S3 to the database! ==========\n')
