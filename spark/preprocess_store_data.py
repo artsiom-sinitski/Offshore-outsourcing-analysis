@@ -3,6 +3,7 @@ Purpose: Retrieve the data from AWS S3 bucket, transform the dataset and store i
 Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 """
+
 from pyspark.sql import SparkSession
 #from pyspark.sql import SQLContext
 from pyspark.sql import functions as F
@@ -12,11 +13,12 @@ from pyspark.sql.types import StructType, StructField,\
                               FloatType
 from postgres_connector import PostgresConnector
 import logging
+import boto3
 
 
-class PreprocessAndTransferDataToDB(object):
+class PreprocessAndTransferDataToDB():
 
-    def __init__(self, file_path):
+    def __init__(self):
         logging.basicConfig(level=logging.INFO)
 
         self.spark = SparkSession \
@@ -25,96 +27,97 @@ class PreprocessAndTransferDataToDB(object):
                     .config('spark.executor.memory', '6gb') \
                     .getOrCreate()
 
-        self.file_path = file_path
+        self.s3bucket = "gdelt-1"
+        self.s3bucket_url = "s3a://gdelt-1/"
+
         self.delimeter = '\t'
 
         self.db_table = 'gdelt_v1_events'
         self.mode = 'append'
 
+        self.schema = StructType([  StructField('GlobalEventId', StringType(), False),
+                                    StructField('SqlDate', StringType(), False),
+                                    StructField('MonthYear', StringType(), True),
+                                    StructField('Year', StringType(), True), 
+                                    StructField('FractionDate', StringType(), True),
 
-    def read_csv_from_s3(self):
+                                    StructField('Actor1Code', StringType(), True),
+                                    StructField('Actor1Name', StringType(), True),
+                                    StructField('Actor1CountryCode', StringType(), True),
+                                    StructField('Actor1KnownGroupCode', StringType(), True),
+                                    StructField('Actor1EthnicCode', StringType(), True),
+                                    StructField('Actor1Religion1Code', StringType(), True),
+                                    StructField('Actor1Religion2Code', StringType(), True),
+                                    StructField('Actor1Type1Code', StringType(), True),
+                                    StructField('Actor1Type2Code', StringType(), True),
+                                    StructField('Actor1Type3Code', StringType(), True),
+
+                                    StructField('Actor2Code', StringType(), True),
+                                    StructField('Actor2Name', StringType(), True),
+                                    StructField('Actor2CountryCode', StringType(), True),
+                                    StructField('Actor2KnownGroupCode', StringType(), True),
+                                    StructField('Actor2EthnicCode', StringType(), True),
+                                    StructField('Actor2Religion1Code', StringType(), True),
+                                    StructField('Actor2Religion2Code', StringType(), True),
+                                    StructField('Actor2Type1Code', StringType(), True),
+                                    StructField('Actor2Type2Code', StringType(), True),
+                                    StructField('Actor2Type3Code', StringType(), True),
+                                    
+                                    StructField('IsRootEvent', StringType(), True),
+                                    StructField('EventCode', StringType(), True),
+                                    StructField('EventBaseCode', StringType(), True),
+                                    StructField('EventRootCode', StringType(), True),
+                                    StructField('QuadClass', StringType(), True),
+                                    StructField('GoldsteinScale', StringType(), True),
+                                    StructField('NumMentions', StringType(), True),
+                                    StructField('NumSources', StringType(), True),
+                                    StructField('NumArticles', StringType(), True),
+                                    StructField('AvgTone', StringType(), True),
+                                    
+                                    StructField('Actor1Geo_Type', StringType(), True),
+                                    StructField('Actor1Geo_FullName', StringType(), True),
+                                    StructField('Actor1Geo_CountryCode', StringType(), True),
+                                    StructField('Actor1Geo_ADM1Code', StringType(), True),
+                                    StructField('Actor1Geo_Lat', StringType(), True),
+                                    StructField('Actor1Geo_Long', StringType(), True),
+                                    StructField('Actor1Geo_FeatureID', StringType(), True),
+                                    
+                                    StructField('Actor2Geo_Type', StringType(), True),
+                                    StructField('Actor2Geo_FullName', StringType(), True),
+                                    StructField('Actor2Geo_CountryCode', StringType(), True),
+                                    StructField('Actor2Geo_ADM1Code', StringType(), True),
+                                    StructField('Actor2Geo_Lat', StringType(), True),
+                                    StructField('Actor2Geo_Long', StringType(), True),
+                                    StructField('Actor2Geo_FeatureID', StringType(), True),
+                                    
+                                    StructField('ActionGeo_Type', StringType(), True),
+                                    StructField('ActionGeo_FullName', StringType(), True),
+                                    StructField('ActionGeo_CountryCode', StringType(), True),
+                                    StructField('ActionGeo_ADM1Code', StringType(), True),
+                                    StructField('ActionGeo_Lat', StringType(), True),
+                                    StructField('ActionGeo_Long', StringType(), True),
+                                    StructField('ActionGeo_FeatureID', StringType(), True),
+                                    
+                                    StructField('DateAdded', StringType(), True),
+                                    StructField('SourceUrl', StringType(), True)
+                                ])
+
+
+    def read_csv_from_s3(self, file_path):
         """
         Reads the data from S3 storage and loads it into Spark's data frame object
         """
-        schema = StructType([
-                            StructField('GlobalEventId', StringType(), False),
-                            StructField('SqlDate', StringType(), False),
-                            StructField('MonthYear', StringType(), True),
-                            StructField('Year', StringType(), True), 
-                            StructField('FractionDate', StringType(), True),
-
-                            StructField('Actor1Code', StringType(), True),
-                            StructField('Actor1Name', StringType(), True),
-                            StructField('Actor1CountryCode', StringType(), True),
-                            StructField('Actor1KnownGroupCode', StringType(), True),
-                            StructField('Actor1EthnicCode', StringType(), True),
-                            StructField('Actor1Religion1Code', StringType(), True),
-                            StructField('Actor1Religion2Code', StringType(), True),
-                            StructField('Actor1Type1Code', StringType(), True),
-                            StructField('Actor1Type2Code', StringType(), True),
-                            StructField('Actor1Type3Code', StringType(), True),
-
-                            StructField('Actor2Code', StringType(), True),
-                            StructField('Actor2Name', StringType(), True),
-                            StructField('Actor2CountryCode', StringType(), True),
-                            StructField('Actor2KnownGroupCode', StringType(), True),
-                            StructField('Actor2EthnicCode', StringType(), True),
-                            StructField('Actor2Religion1Code', StringType(), True),
-                            StructField('Actor2Religion2Code', StringType(), True),
-                            StructField('Actor2Type1Code', StringType(), True),
-                            StructField('Actor2Type2Code', StringType(), True),
-                            StructField('Actor2Type3Code', StringType(), True),
-                            
-                            StructField('IsRootEvent', StringType(), True),
-                            StructField('EventCode', StringType(), True),
-                            StructField('EventBaseCode', StringType(), True),
-                            StructField('EventRootCode', StringType(), True),
-                            StructField('QuadClass', StringType(), True),
-                            StructField('GoldsteinScale', StringType(), True),
-                            StructField('NumMentions', StringType(), True),
-                            StructField('NumSources', StringType(), True),
-                            StructField('NumArticles', StringType(), True),
-                            StructField('AvgTone', StringType(), True),
-                            
-                            StructField('Actor1Geo_Type', StringType(), True),
-                            StructField('Actor1Geo_FullName', StringType(), True),
-                            StructField('Actor1Geo_CountryCode', StringType(), True),
-                            StructField('Actor1Geo_ADM1Code', StringType(), True),
-                            StructField('Actor1Geo_Lat', StringType(), True),
-                            StructField('Actor1Geo_Long', StringType(), True),
-                            StructField('Actor1Geo_FeatureID', StringType(), True),
-                            
-                            StructField('Actor2Geo_Type', StringType(), True),
-                            StructField('Actor2Geo_FullName', StringType(), True),
-                            StructField('Actor2Geo_CountryCode', StringType(), True),
-                            StructField('Actor2Geo_ADM1Code', StringType(), True),
-                            StructField('Actor2Geo_Lat', StringType(), True),
-                            StructField('Actor2Geo_Long', StringType(), True),
-                            StructField('Actor2Geo_FeatureID', StringType(), True),
-                            
-                            StructField('ActionGeo_Type', StringType(), True),
-                            StructField('ActionGeo_FullName', StringType(), True),
-                            StructField('ActionGeo_CountryCode', StringType(), True),
-                            StructField('ActionGeo_ADM1Code', StringType(), True),
-                            StructField('ActionGeo_Lat', StringType(), True),
-                            StructField('ActionGeo_Long', StringType(), True),
-                            StructField('ActionGeo_FeatureID', StringType(), True),
-                            
-                            StructField('DateAdded', StringType(), True),
-                            StructField('SourceUrl', StringType(), True)
-                           ])
         df = self.spark.read\
-                       .format('csv')\
-                       .options(header='false', inferSchema='false', sep=self.delimeter)\
-                       .schema(schema)\
-                       .load(self.file_path)
-        print('\n========== Loaded data into Spark object! ==========\n')
+                        .format('csv')\
+                        .options(header='false', inferSchema='false', sep=self.delimeter)\
+                        .schema(self.schema)\
+                        .load(file_path)
         return df
-   
+
 
     def transform_df(self, df):
         """
-        Cast the df column values to match the database table column data types.
+        Cast data frame column values to match the database table column data types.
         """
         df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
         df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
@@ -192,15 +195,26 @@ class PreprocessAndTransferDataToDB(object):
 
 
     def run(self):
-        in_df = self.read_csv_from_s3()
-        in_df.printSchema()
-        in_df.show(3, False)  # False - don't truncate column's content
-        
-        out_df = self.transform_df(in_df)
-        out_df.printSchema()
-        out_df.show(3, False)
-        
-        self.write_events_to_db(out_df)
+        s3 = boto3.resource(service_name = 's3')
+        bucket = s3.Bucket(self.s3bucket)
+        counter = 0
+
+        for file_name in bucket.objects.all():
+            file_path = self.s3bucket_url + file_name.key
+
+            in_df = self.read_csv_from_s3(file_path)
+            # in_df.printSchema()
+            in_df.show(1, False)  # False - don't truncate column's content
+                    
+            out_df = self.transform_df(in_df)
+            # out_df.printSchema()
+            out_df.show(1, False)
+
+            self.write_events_to_db(out_df)
+            counter += 1
+            print("Saved to db " + str(counter) + " files\n")
+ 
+       
 
 ###################### End of class PreprocessTransferDataToDB ########################
 #######################################################################################
@@ -211,12 +225,11 @@ def main():
     # file_name = '20160504.export.CSV'
     # file_path = s3bucket_url + file_name
 
-    s3bucket_url = "s3a://gdelt-1/"
-    file_name = "*.CSV"
-    file_path = s3bucket_url + file_name
+    # s3bucket_url = "s3a://gdelt-1/"
+    # file_name = "*.CSV"
+    # file_path = s3bucket_url + file_name
 
-    # process = PreprocessAndTransferDataToDB(s3bucket_url)
-    process = PreprocessAndTransferDataToDB(file_path)
+    process = PreprocessAndTransferDataToDB()
     process.run()
     print('\n========== Moved data from S3 to the database! ==========\n')
 
