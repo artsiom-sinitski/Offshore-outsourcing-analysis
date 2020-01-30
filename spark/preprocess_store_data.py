@@ -14,6 +14,7 @@ from pyspark.sql.types import StructType, StructField,\
 from postgres_connector import PostgresConnector
 import logging
 import boto3
+import time
 
 
 class PreprocessAndTransferDataToDB():
@@ -120,7 +121,7 @@ class PreprocessAndTransferDataToDB():
         Cast data frame column values to match the database table column data types.
         """
         df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
-        df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
+        df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyymmdd'))
         df = df.withColumn('MonthYear', df.MonthYear.cast('INT'))
         df = df.withColumn('Year', df.Year.cast('INT'))
         df = df.withColumn('FractionDate', df.FractionDate.cast('STRING'))
@@ -191,7 +192,6 @@ class PreprocessAndTransferDataToDB():
     def write_events_to_db(self, data_frame):
         connector = PostgresConnector()
         connector.write_to_db(data_frame, self.db_table, self.mode)
-        print('\n========== Loaded data into PostgreSQL ==========\n')
 
 
     def run(self):
@@ -202,23 +202,24 @@ class PreprocessAndTransferDataToDB():
         for file_name in bucket.objects.all():
             file_path = self.s3bucket_url + file_name.key
 
+            start_time = time.time()
             in_df = self.read_csv_from_s3(file_path)
-            # in_df.printSchema()
-            in_df.show(1, False)  # False - don't truncate column's content
+            #in_df.printSchema()
+            #in_df.show(1, False)  # False - don't truncate column's content
                     
             out_df = self.transform_df(in_df)
-            # out_df.printSchema()
+            #out_df.printSchema()
             out_df.show(1, False)
 
             self.write_events_to_db(out_df)
+            end_time = time.time()
+            
             counter += 1
-            print("Saved to db " + str(counter) + " files\n")
- 
-       
+            print("\n>>>>> Processed file " + str(counter) + " - " + file_name.key +\
+                  " in %s seconds\n" % round(end_time - start_time, 2))
 
 ###################### End of class PreprocessTransferDataToDB ########################
 #######################################################################################
-
 
 def main():
     # s3bucket_url = 's3a://gdelt-1-test/'
@@ -228,10 +229,11 @@ def main():
     # s3bucket_url = "s3a://gdelt-1/"
     # file_name = "*.CSV"
     # file_path = s3bucket_url + file_name
+    # os.environ['PYSPARK_PYTHON'] = '/usr/bin/python3'
 
     process = PreprocessAndTransferDataToDB()
     process.run()
-    print('\n========== Moved data from S3 to the database! ==========\n')
+    print('\n========== Finished moving data from S3 to database! ==========\n')
 
 
 if __name__ == '__main__':
