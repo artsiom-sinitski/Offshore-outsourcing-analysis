@@ -71,7 +71,7 @@ class PreprocessAndSaveDataToDB():
         """
         if schema_type == "event":
             df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
-            df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyymmdd'))
+            df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
             df = df.withColumn('MonthYear', df.MonthYear.cast('INT'))
             df = df.withColumn('Year', df.Year.cast('INT'))
             df = df.withColumn('FractionDate', df.FractionDate.cast('STRING'))
@@ -133,13 +133,13 @@ class PreprocessAndSaveDataToDB():
             df = df.withColumn('ActionGeo_Long', df.ActionGeo_Long.cast('STRING'))
             df = df.withColumn('ActionGeo_FeatureID', df.ActionGeo_FeatureID.cast('STRING'))
 
-            df = df.withColumn('DateAdded', F.to_date(df.DateAdded, format='yyyymmdd'))
+            df = df.withColumn('DateAdded', F.to_date(df.DateAdded, format='yyyyMMdd'))
             df = df.withColumn('SourceUrl', df.SourceUrl.cast('STRING'))
 
         elif schema_type == "mention":
             df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
-            df = df.withColumn('EventTimeDate', F.to_date(df.EventTimeDate, format='yyyymmddhhmmss'))
-            df = df.withColumn('MentionTimeDate', F.to_date(df.MentionTimeDate, format='YYYYMMDDHHMMSS'))
+            df = df.withColumn('EventTimeDate', F.to_date(df.EventTimeDate, format="yyyyMMdd HH:mm:ss"))
+            df = df.withColumn('MentionTimeDate', F.to_date(df.MentionTimeDate, format="yyyyMMdd HH:mm:ss"))
             df = df.withColumn('MentionType', df.MentionType.cast('STRING'))
             df = df.withColumn('MentionSourceName', df.MentionSourceName.cast('STRING'))
             df = df.withColumn('MentionIdentifier', df.MentionIdentifier.cast('STRING'))
@@ -156,7 +156,7 @@ class PreprocessAndSaveDataToDB():
 
         elif schema_type == "gkg":
             df = df.withColumn('GkgRecordId', df.GkgRecordId.cast('STRING'))
-            df = df.withColumn('Date', F.to_date(df.Date, format='yyyymmddhhmmss'))
+            df = df.withColumn('Date', F.to_date(df.Date, format="yyyyMMdd'T'HH:mm:ss"))
             df = df.withColumn('SourceCollectionIdentifier', df.SourceCollectionIdentifier.cast('STRING'))
             df = df.withColumn('SourceCommonName', df.SourceCommonName.cast('STRING'))
             df = df.withColumn('DocumentIdentifier', df.DocumentIdentifier.cast('STRING'))
