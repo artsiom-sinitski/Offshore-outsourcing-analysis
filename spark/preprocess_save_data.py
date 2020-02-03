@@ -8,10 +8,10 @@ Date:   02/03/2020
 from pyspark.sql import SparkSession
 #from pyspark.sql import SQLContext
 from pyspark.sql import functions as F
-# from pyspark.sql.types import StructType, StructField,\
-#                               StringType, IntegerType,\
-#                               DateType, BooleanType,\
-#                               FloatType
+from pyspark.sql.types import StructType, StructField,\
+                              StringType, IntegerType,\
+                              DateType, BooleanType,\
+                              FloatType
 from schema import GdeltDataSchema
 from postgres_connector import PostgresConnector
 import logging
