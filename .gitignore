@@ -2,4 +2,7 @@
 .~*
 *.csv
 *.jar
+test*
+.gitignore
+
 
