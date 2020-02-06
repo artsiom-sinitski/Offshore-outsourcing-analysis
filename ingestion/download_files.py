@@ -8,7 +8,7 @@ import os
 import time
 import requests
 import lxml.html as lh
-from zipfile import ZipFile
+from zipfile import ZipFile, BadZipFile
 import boto3
 
 class DownloadFiles():
@@ -49,7 +49,7 @@ class DownloadFiles():
             with open("./data/" + master_file_name, "r") as file_content:
                 k = 0
                 for file_line in iter(file_content.readline, ""):
-                    if k >= 9: break
+                    # if k >= 9: break
                     k += 1
                     # extract GDELT file url only
                     file_name = file_line.split()[-1]
@@ -69,8 +69,8 @@ class DownloadFiles():
             doc = lh.fromstring(page.content)
             link_list = doc.xpath("//*/ul/li/a/@href")
 
-            # Right now getting only files create after 2013-04-01,
-            # because other ones have a different naming convention
+            # Right now get only the files created after 2013-04-01,
+            # Earlier versions have a different naming convention.
             file_list = [x for x in link_list if x.endswith(".export.CSV.zip")]
            
         return file_list
@@ -94,25 +94,29 @@ class DownloadFiles():
                 f.write(r.content)
 
             # unzip the downloaded file to the same folder
-            with ZipFile(in_folder + file, 'r') as zip_obj:
-                zip_obj.extractall(in_folder)
-            
-            file_path = in_folder + file[:-4] 
-            key = file[:-4]    #file name w/o ".zip"
+            try:
+                with ZipFile(in_folder + file, 'r') as zip_obj:
+                    zip_obj.extractall(in_folder)
 
-            # connect to S3 storage and move the unzipped data file there
-            s3 = boto3.resource(service_name = 's3')
-            s3.create_bucket(Bucket=bucket_name)
-            s3.meta.client.upload_file(file_path, bucket_name, key)
+                file_path = in_folder + file[:-4] 
+                key = file[:-4]    #file name w/o ".zip"
 
-            print("'" + file[:-4] + "'" + " added to S3.")
+                # connect to S3 storage and move the unzipped data file there
+                s3 = boto3.resource(service_name = 's3')
+                s3.create_bucket(Bucket=bucket_name)
+                s3.meta.client.upload_file(file_path, bucket_name, key)
 
-            # delete both ziped/unzipped data files from the EC2 server
-            if os.path.exists(in_folder + file[:-4]):
-                os.remove(in_folder + file)
-                os.remove(in_folder + file[:-4])
-            else:
-                print("The file doesn't exist!")
+                print("'" + file[:-4] + "'" + " added to S3.")
+
+                # delete both ziped/unzipped data files from the EC2 server
+                if os.path.exists(in_folder + file[:-4]):
+                    os.remove(in_folder + file)
+                    os.remove(in_folder + file[:-4])
+                else:
+                    print("The file doesn't exist!")
+
+            except BadZipFile:
+                print("\nCoorupt '" + in_folder + file + "' archive! Skipped.\n")
 
 
     def run(self):
