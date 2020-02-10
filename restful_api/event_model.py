@@ -3,21 +3,24 @@ Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 Date:   02/08/2020
 """
-# Sqlalchemy - flask wrapper for Sqlalchemy. SqlAlchemy is an Object Relational Mapper (ORM).
+# Sqlalchemy - flask wrapper for Sqlalchemy. Sqlalchemy is an Object Relational Mapper (ORM).
 # An ORM is a database sql abstraction to carry out sql operations on relational database.
 from flask_sqlalchemy import SQLAlchemy
 # Marshmallow is a library for converting complex datatypes to and from native Python datatypes.
 # It's used for deserialization (converting data to application objects) and
 # serialization (converting application objects to simple types).
 from flask_marshmallow import Marshmallow
-
+from flask import request
 
 rdb = SQLAlchemy()
 ma = Marshmallow()
 
+
 class GdeltEventModel(rdb.Model):
     """
-    GDELT event model class definition
+    GDELT event model class definition.
+    Model determines the logical structures of a database and defines how
+    records can be manipulated or retrieved in the database.
     """
     __tablename__ = 'gdelt_events'
 
@@ -49,6 +52,14 @@ class GdeltEventModel(rdb.Model):
     def get_event_by_id(id):
         return GdeltEventModel.query.get(id)
     
+
+    @staticmethod
+    def get_events_by_date(date):
+        # date1 = request.args.get('date')
+        # sql_string = "SELECT * FROM gdelt_event WHERE date = %s"
+        # rs = session.execute(sql_string, parameters=[date1])[0]
+        return GdeltEventModel.query.get(date)
+
 
     @staticmethod
     def get_all_events():
