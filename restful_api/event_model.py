@@ -55,10 +55,7 @@ class GdeltEventModel(rdb.Model):
 
     @staticmethod
     def get_events_by_date(date):
-        # date1 = request.args.get('date')
-        # sql_string = "SELECT * FROM gdelt_event WHERE date = %s"
-        # rs = session.execute(sql_string, parameters=[date1])[0]
-        return GdeltEventModel.query.get(date)
+        return GdeltEventModel.query.filter(GdeltEventModel.SqlDate == date)
 
 
     @staticmethod

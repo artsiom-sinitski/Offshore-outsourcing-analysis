@@ -24,6 +24,8 @@ import connexion
 # Create the application instance using connexion
 # app = connexion.FlaskApp(__name__, specification_dir='./')
 # app.add_api('swagger.yaml')
+# print(" -------- Type: ", type(app.app))
+# exit()
 
 app = Flask(__name__, template_folder="templates")
 app.config.from_object(app_config['development'])
@@ -45,7 +47,6 @@ def home():
            '''
     # return render_template('home.html')    # need to create a template for "home.html"
 
-
 #================== GDELT Events API mappings section ==================================
 @app.route('/dws_api/event_by_id_req/<id>', methods=['GET'])
 def event_by_id_request(id):
@@ -56,7 +57,7 @@ def event_by_id_request(id):
 @app.route('/dws_api/event_list_by_date_req/<date>', methods=['GET'])
 def events_by_date_request(date):
     event_list = GdeltEventModel.get_events_by_date(date)
-    return event_list_schema.dump(event_list)
+    return jsonify({ "event_list": event_list_schema.dump(event_list) })
 
 
 #================== GDELT Mentions API mappings section ==================================
@@ -64,7 +65,6 @@ def events_by_date_request(date):
 def mention_by_id_request(id):
     mention = GdeltMentionModel.get_mention_by_id(id)
     return mention_schema.dump(mention)
-
 
 #================== GDELT Gkg API mappings section =======================================
 #TODO:
