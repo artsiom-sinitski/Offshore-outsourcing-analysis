@@ -28,6 +28,7 @@ Languages:
 Technologies:
 * Apache Spark
 * PostgreSQL
+* Flask
 
 Third-Party Dependencies:
 * AWS CLI
@@ -66,10 +67,6 @@ tag_name: spark-cluster
 vol_size: 100
 role: master
 use_eips: true
-```
-Then start the cluster:
-```bash
-bash ./src/bash/provision_cluster.sh
 ```
 
 #### Running the Spark cluster:
