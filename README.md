@@ -10,7 +10,7 @@
 # Introduction
 This project aims to create a simple and cost-conscious solution for collecting, managing and analyzing large datasets, so that data analysts can discover, visualize and present their findings in a short period of time al in one spot.
 
-I used [GDELT](https://www.gdeltproject.org) data set as the primary source of data for my data warehouse.
+I used [GDELT](https://www.gdeltproject.org/data.html) data set as the primary source of data for my data warehouse.
 
 
 # Approach
