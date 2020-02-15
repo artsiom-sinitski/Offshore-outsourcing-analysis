@@ -81,9 +81,27 @@ screen
 ```
 HINT: Use Ctrl + 'a' + 'd' to detach the process and continue its execution as a background process.
 
-The data transformation process using Spark can be started by executing:
+To start the data transformation process using Spark run:
 ```bash
 bash ./spark/run_spark.sh
+```
+
+#### Running the PostgreSQL database server:
+SSH into the flask server and run:
+```bash
+bash ./postgres/run_postgres.sh
+```
+
+#### Running the web API flask server:
+SSH into the flask server and run:
+```bash
+bash ./web_api/run_api.sh
+```
+
+#### Running the frontend flask server:
+SSH into the flask server and run:
+```bash
+bash ./frontend/run_frontend.sh
 ```
 
 # Author
