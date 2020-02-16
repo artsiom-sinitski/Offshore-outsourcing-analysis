@@ -54,7 +54,7 @@ To stop:
 pip3 install pyspark
 ```
 
-### Download the JDBC driver v42.2.9 from https://jdbc.postgresql.org/download.html#others
+### Download the [JDBC driver v42.2.9](https://jdbc.postgresql.org/download.html#others)
 
 ## Install PostgreSQL
 ```bash
