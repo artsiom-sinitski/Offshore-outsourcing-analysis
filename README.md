@@ -1,16 +1,22 @@
-# Data Warehouse Solution (DWS)
+# DWS (Data Warehouse Solution)
+
 
 # Table of Contents
 1. [Introduction](README.md#introduction)
-2. [Approach](README.md#approach)
-3. [Requirements](README.md#requirements)
-4. [Running the Pipeline](README.md#running-the-pipeline)
-5. [Author](README.md#author)
+2. [Data Sources](README.md#data-sources)
+3. [Approach](README.md#approach)
+4. [Project Structure](README.md#project-structure)
+5. [Requirements](README.md#requirements)
+6. [Cluster Structure](README.md#cluster-structure)
+7. [Running the Pipeline](README.md#running-the-pipeline)
+8. [Author](README.md#author)
 
 # Introduction
-This project aims to create a simple and cost-conscious solution for collecting, managing and analyzing large datasets, so that data analysts can discover, visualize and present their findings without much effort.
+This project aims to create a simple and cost-conscious solution for collecting, managing and analyzing large datasets, so that data analysts can discover, visualize and present their findings with ease.
 
-I used [GDELT](https://www.gdeltproject.org/data.html) data set as the primary source of data for my data warehouse.
+
+# Data Sources
+I used the [GDELT](https://www.gdeltproject.org/data.html) data set as the primary source of data for my data warehouse.
 
 
 # Approach
@@ -35,19 +41,36 @@ Third-Party Dependencies:
 * See the [Dependencies File](data/../docs/3rd_party_dependencies.txt) for a complete list of libraries required.
 
 
-# Running the Pipeline:
+# Project Structure
+![](docs/directory_structure.png)
+* /docs - contains media resources for the README file
+* /frontend - scripts necessary to run demo webpage
+* /ingestion - scripts to perform initial raw data download from the GDELT web site
+* /postgres - scripts to start database server
+* /spark - scripts to start the Spark engine for raw data transformations
+* /web_api - scripts to start the flask webserver for web API
+
+# Cluster Structure
+For my project I used 6 AWS EC2 instances:
+
+![AWS Cluster](/docs/DWS_Cluster_Setup.png)
+* Spark Cluster (4 nodes) - Batch
+* Database Server (1 node) - PostgreSQL
+* Flask Webserver (1 Node) - Web Api & Demo frontend
+
+# Running the Pipeline
 #### Configure AWS
 ```bash
 aws configure
 ```
 
-#### Set-up AWS:
-Configure a Virtual Private Cloud (VPC) with a security group and subnet.
+#### Set-up AWS
+Configure a Virtual Private Cloud (VPC) with necessary Security Groups and Subnet.
 
 #### Setup the ENV environment file
-All project's processes rely on environment variables. It will also be distriubted to the cluster, so the cluster knows the Postgres server information.
+Quite a few project's processes rely on environment variables. It will also be distriubted to the cluster, so the cluster knows the Postgres server information.
 
-#### Download the data:
+#### Download the raw GDELT data
 SSH into the master node (EC2) instance and run:
 ```bash
 bash ./ingestion/run_download.sh
