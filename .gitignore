@@ -1,0 +1,10 @@
+/data
+.~*
+*.csv
+*.jar
+test*
+.vscode
+credentials*
+*.pyc
+
+
