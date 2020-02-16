@@ -5,7 +5,7 @@
 1. [Introduction](README.md#introduction)
 2. [Data Sources](README.md#data-sources)
 3. [Approach](README.md#approach)
-4. [Project Structure](README.md#project-structure)
+4. [Project Structure](README.md#project-folder-structure)
 5. [Requirements](README.md#requirements)
 6. [Cluster Structure](README.md#cluster-structure)
 7. [Running the Pipeline](README.md#running-the-pipeline)
@@ -27,7 +27,7 @@ I used the [GDELT](https://www.gdeltproject.org/data.html) data set as the prima
 4. Retrieve and visualize data via analytics Tableau dashboard (ex.: Tableau) or access the data through web API
 5. Airflow orchestration of pipeline and daily updates with new GDELT events data
 
-# Requirements
+# Requirements and Installation steps
 Languages:
 * Python 3.5
 
@@ -38,16 +38,17 @@ Technologies:
 
 Third-Party Dependencies:
 * AWS CLI
-* See the [Dependencies File](data/../docs/3rd_party_dependencies.txt) for a complete list of libraries required.
+* See the [Dependencies List](docs/3rd_party_dependencies.txt) for the libraries required
+* Refer to the [Installation Instructions](docs/install_instructions.md) for more details
 
 
-# Project Structure
-![](docs/directory_structure.png)
-* /docs - contains media resources for the README file
-* /frontend - scripts necessary to run demo webpage
-* /ingestion - scripts to perform initial raw data download from the GDELT web site
+# Project Folder Structure
+![Directory Structure](docs/directory_structure.png)
+* /docs - contains resources for the README file
+* /frontend - scripts necessary to run the demo webpage
+* /ingestion - scripts to download raw data from the GDELT web site
 * /postgres - scripts to start database server
-* /spark - scripts to start the Spark engine for raw data transformations
+* /spark - scripts to start Saprk data transformations
 * /web_api - scripts to start the flask webserver for web API
 
 # Cluster Structure
@@ -58,25 +59,25 @@ For my project I used 6 AWS EC2 instances:
 * Database Server (1 node) - PostgreSQL
 * Flask Webserver (1 Node) - Web Api & Demo frontend
 
-# Running the Pipeline
-#### Configure AWS
+# Run the Pipeline
+#### Configuring AWS
 ```bash
 aws configure
 ```
 
-#### Set-up AWS
+#### Setting up AWS
 Configure a Virtual Private Cloud (VPC) with necessary Security Groups and Subnet.
 
-#### Setup the ENV environment file
+#### Setting up the ENV environment file
 Quite a few project's processes rely on environment variables. It will also be distriubted to the cluster, so the cluster knows the Postgres server information.
 
-#### Download the raw GDELT data
+#### Downloading the raw GDELT data (Ingestion step)
 SSH into the master node (EC2) instance and run:
 ```bash
 bash ./ingestion/run_download.sh
 ```
 
-#### Spin up the Spark cluster:
+#### Spinning up the Spark cluster
 Start a cluster using the open-source tool [Pegasus](https://github.com/InsightDataScience/pegasus).
 Configure the master and workers nodes yaml files under ./vars/spark_cluster. Ex. the master file:
 ```yaml
@@ -109,19 +110,19 @@ To start the data transformation process using Spark run:
 bash ./spark/run_spark.sh
 ```
 
-#### Running the PostgreSQL database server:
+#### Running the PostgreSQL database server
 SSH into the flask server and run:
 ```bash
 bash ./postgres/run_postgres.sh
 ```
 
-#### Running the web API flask server:
+#### Running the web API flask server
 SSH into the flask server and run:
 ```bash
 bash ./web_api/run_api.sh
 ```
 
-#### Running the frontend flask server:
+#### Running the frontend flask server
 SSH into the flask server and run:
 ```bash
 bash ./frontend/run_frontend.sh
