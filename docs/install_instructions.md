@@ -14,8 +14,13 @@ wget http://central.maven.org/maven2/com/amazonaws/aws-java-sdk/1.7.4/aws-java-s
 wget http://central.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.1/hadoop-aws-2.7.1.jar
 ```
 Under /usr/local/spark/conf/spark-defaults.conf:
-- spark.executor.extraClassPath path-to-jar-file
-- spark.driver.extraClassPath path-to-jar-file
+- spark.executor.extraClassPath 'path-to-jar-file'
+- spark.driver.extraClassPath 'path-to-jar-file'
+
+Under /usr/local/spark/conf/spark-env.sh:
+- export PYSPARK_PYTHON=/usr/bin/python3
+- export PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+
 
 ## Install Python 3
 ```bash
@@ -46,7 +51,10 @@ To stop:
 
 ### Install PySpark
 ```bash
+pip3 install pyspark
 ```
+
+### Download the JDBC driver v42.2.9 from https://jdbc.postgresql.org/download.html#others
 
 ## Install PostgreSQL
 ```bash
