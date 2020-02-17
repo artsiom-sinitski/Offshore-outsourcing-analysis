@@ -4,14 +4,25 @@ Email:  artsiom.vs@gmail.com
 Date:   02/10/2020
 """
 
-from flask import Flask, render_template
+from flask import Flask, render_template,\
+                  request, url_for, redirect
 
 
 app = Flask(__name__, template_folder="templates")
 
 @app.route('/')
-def main():
-    return render_template("dws_demo.html")
+def index():
+    return render_template("index.html")
+
+
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    return render_template("tableau_dashboard.html")
+
+
+@app.route('/webapi', methods=['GET'])
+def webapi():
+    return render_template("web_api.html")
 
 
 if __name__ == "__main__":
