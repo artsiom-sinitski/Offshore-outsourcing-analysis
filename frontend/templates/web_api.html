@@ -5,16 +5,13 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
   <title>DWS | GDEL Warehouse</title>
 </head>
 
 <body>
-
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="/">DWS</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -39,29 +36,28 @@
       <h2>Search event by ID</h2>
       <p>This endpoint gets GDELT events by an ID.</p>
       <span>
-        <a href="http://bigdataprocessor.live:5000/dws_api/event_by_id_req/433097379">Example</a>
+        <a href="http://bigdataprocessor.live:5000/dws_api/v1/event_by_id_req/433097379">Example</a>
       </span>
       <pre class="pre-scrollable">
-        <code  data-lang="bash">curl -X GET "http://bigdataprocessor.live:5000/dws_api/event_by_id_req/{event_id}"</code>
+        <code  data-lang="bash">curl -X GET "http://bigdataprocessor.live:5000/dws_api/v1/event_by_id_req/{event_id}"</code>
       </pre>
       <pre class="pre-scrollable">
         <code data-lang="JavaScript">
             {
-                "Actor1CountryCode": "EUR", 
-                "Actor1Name": "EUROPEAN", 
-                "Actor2CountryCode": "SYR", 
-                "Actor2Name": "SYRIA", 
-                "AvgTone": -6.82138, 
-                "EventCode": "010", 
-                "GlobalEventId": "433097379", 
-                "SqlDate": "2015-01-14"
-              }
+              "Actor1CountryCode": "EUR", 
+              "Actor1Name": "EUROPEAN", 
+              "Actor2CountryCode": "SYR", 
+              "Actor2Name": "SYRIA", 
+              "AvgTone": -6.82138, 
+              "EventCode": "010", 
+              "GlobalEventId": "433097379", 
+              "SqlDate": "2015-01-14"
+            }
             </code>
           </pre>
 
-      <h2>Search event by date</h2>
+      <h2>Search event by Date</h2>
     </section>
-
   </div>
 
   <!-- Optional JavaScript -->

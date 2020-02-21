@@ -10,22 +10,6 @@ from mention_model import GdeltMentionModel, GdeltMentionSchema
 from config import app_config
 import connexion
 
-# # Sqlalchemy - flask wrapper for Sqlalchemy. SqlAlchemy is an Object Relational Mapper (ORM).
-# # An ORM is a database sql abstraction to carry out sql operations on relational database.
-# from flask_sqlalchemy import SQLAlchemy
-# # Marshmallow is a library for converting complex datatypes to and from native Python datatypes.
-# # It's used for deserialization (converting data to application objects) and
-# # serialization (converting application objects to simple types).
-# from flask_marshmallow import Marshmallow
-
-# rdb = SQLAlchemy()
-# ma = Marshmallow()
-
-# Create the application instance using connexion
-# app = connexion.FlaskApp(__name__, specification_dir='./')
-# app.add_api('swagger.yaml')
-# print(" -------- Type: ", type(app.app))
-# exit()
 
 app = Flask(__name__, template_folder="templates")
 app.config.from_object(app_config['development'])
