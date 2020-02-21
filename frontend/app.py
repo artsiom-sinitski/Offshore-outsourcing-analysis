@@ -15,18 +15,12 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/dashboard', methods=['GET'])
-def dashboard():
-    return render_template("tableau_dashboard.html")
-
-
 @app.route('/webapi', methods=['GET'])
 def webapi():
     return render_template("web_api.html")
 
 
 if __name__ == "__main__":
-    # app.config[DEBUG] = True 
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=80, debug=True)
 
 
