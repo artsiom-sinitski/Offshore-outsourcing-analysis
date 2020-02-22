@@ -33,11 +33,9 @@
   <div class="container">
     <!-- Content here -->
     <section>
-      <h2>Search event by ID</h2>
-      <p>This endpoint gets GDELT events by an ID.</p>
-      <span>
-        <a href="http://bigdataprocessor.live:5000/dws_api/v1/event_by_id_req/433097379">Example</a>
-      </span>
+      <h4> <span>&#8226;</span>  Search event by ID</h4>
+      <p>This endpoint gets GDELT events by an ID (<span><a href="http://bigdataprocessor.live:5000/dws_api/v1/event_by_id_req/433097379">example</a></span>)
+      </p>
       <pre class="pre-scrollable">
         <code  data-lang="bash">curl -X GET "http://bigdataprocessor.live:5000/dws_api/v1/event_by_id_req/{event_id}"</code>
       </pre>
@@ -56,7 +54,161 @@
             </code>
           </pre>
 
-      <h2>Search event by Date</h2>
+      <h4> <span>&#8226;</span> Search event by Date</h4>
+      <p>This endpoint gets GDELT events by Date (<span><a href="http://bigdataprocessor.live:5000/dws_api/v1/event_list_by_date_req/2005-01-31">example</a></span>)
+      </p>
+      <pre class="pre-scrollable">
+        <code  data-lang="bash">curl -X GET "http://bigdataprocessor.live:5000/dws_api/v1/event_list_by_date_req/{event_id}"</code>
+      </pre>
+
+      <pre class="pre-scrollable">
+        <code data-lang="JavaScript">
+           {
+            "event_list": [
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": null,
+                "Actor2Name": "NEWSPAPER PUBLISHER",
+                "AvgTone": -6.43016,
+                "EventCode": "080",
+                "GlobalEventId": "421053615",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": "USA",
+                "Actor2Name": "ALASKA",
+                "AvgTone": -6.43016,
+                "EventCode": "090",
+                "GlobalEventId": "421053616",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": "USA",
+                "Actor2Name": "ALASKA",
+                "AvgTone": -6.43016,
+                "EventCode": "090",
+                "GlobalEventId": "421053617",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": "USA",
+                "Actor2Name": "ALASKA",
+                "AvgTone": -6.43016,
+                "EventCode": "090",
+                "GlobalEventId": "421053618",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": "PSE",
+                "Actor1Name": "PALESTINIAN",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -1.28755,
+                "EventCode": "127",
+                "GlobalEventId": "421073065",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": "PSE",
+                "Actor1Name": "PALESTINIAN",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -1.28755,
+                "EventCode": "127",
+                "GlobalEventId": "421073066",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "AIR FORCE",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -3.68421,
+                "EventCode": "030",
+                "GlobalEventId": "421138762",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": "IRN",
+                "Actor1Name": "IRANIAN",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -1.21951,
+                "EventCode": "120",
+                "GlobalEventId": "421174926",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "MEDIA",
+                "Actor2CountryCode": "AUS",
+                "Actor2Name": "NORTHERN TERRITORY",
+                "AvgTone": -7.21817,
+                "EventCode": "010",
+                "GlobalEventId": "421108500",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "MEDIA",
+                "Actor2CountryCode": "AUS",
+                "Actor2Name": "NORTHERN TERRITORY",
+                "AvgTone": -7.21817,
+                "EventCode": "173",
+                "GlobalEventId": "421108501",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": "CAN",
+                "Actor1Name": "CANADIAN",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -2.97357,
+                "EventCode": "060",
+                "GlobalEventId": "421183724",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": -0.314961,
+                "EventCode": "010",
+                "GlobalEventId": "421185177",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "GOVERNMENT",
+                "Actor2CountryCode": null,
+                "Actor2Name": null,
+                "AvgTone": 0.568182,
+                "EventCode": "013",
+                "GlobalEventId": "421185178",
+                "SqlDate": "2005-01-31"
+              },
+              {
+                "Actor1CountryCode": null,
+                "Actor1Name": "UNITED NATIONS",
+                "Actor2CountryCode": "IRN",
+                "Actor2Name": "IRAN",
+                "AvgTone": -0.908174,
+                "EventCode": "163",
+                "GlobalEventId": "421191603",
+                "SqlDate": "2005-01-31"
+              }
+            ]
+          }
+            </code>
+          </pre>
     </section>
   </div>
 
