@@ -18,6 +18,9 @@ import time
 class PreprocessAndSaveDataToDB():
 
     def __init__(self):
+        """
+        Class constructor that initializes created objects with the default values
+        """
         logging.basicConfig(level=logging.INFO)
 
         self.spark = SparkSession \
@@ -41,7 +44,8 @@ class PreprocessAndSaveDataToDB():
 
     def read_csv_from_s3(self, file_path):
         """
-        Reads the data from S3 storage and loads it into Spark's data frame object
+        Reads the data from AWS S3 storage and loads it into Spark's data frame object.
+        :type file_path:     str        path to CSV data files stored in S3
         """
         schema = None
         schema_type = None
@@ -67,8 +71,16 @@ class PreprocessAndSaveDataToDB():
 
     def transform_df(self, df, schema_type):
         """
-        Cast data frame column values to match the database table column data types.
+        Casts data frame column values to match the GDELT specified data types.
+
+        Args:
+            df (data frame): Spark data frame object with raw data to be transformed.
+            schema_type (str): Specifies which schema to be used for data transformation
+
+        Returns:
+            df (data frame): Data frame with transformed data
         """
+        
         if schema_type == "event":
             df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
             df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
@@ -187,6 +199,16 @@ class PreprocessAndSaveDataToDB():
 
 
     def write_df_to_db(self, data_frame, schema_type):
+        """
+        Writes data frame object content to the postgres database.
+
+        Args:
+            data_frame (data frame): Spark data frame object with transformed data.
+            schema_type (str): Specifies which schema to be used for data transformation
+
+        Returns:
+            None.
+        """
         db_table = None
         if schema_type == "event":
             db_table = self.events_table
@@ -200,8 +222,6 @@ class PreprocessAndSaveDataToDB():
 
 
     def run(self):
-        # os.environ['PYSPARK_PYTHON'] = '/usr/bin/python3'
-
         f_counter = 0
         schema_type = None
 

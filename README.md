@@ -93,7 +93,7 @@ role: master
 use_eips: true
 ```
 
-#### Running the Spark cluster:
+#### Running the Spark cluster (Data processing step)
 SSH into the master node and run:
 ```bash
 peg ssh spark-cluster 1
@@ -117,13 +117,13 @@ bash ./postgres/run_postgres.sh
 ```
 
 #### Running the web API flask server
-SSH into the flask server and run:
+SSH into the web API instance and run:
 ```bash
 bash ./web_api/run_api.sh
 ```
 
 #### Running the frontend flask server
-SSH into the flask server and run:
+SSH into the frontend instance and run:
 ```bash
 bash ./frontend/run_frontend.sh
 ```
