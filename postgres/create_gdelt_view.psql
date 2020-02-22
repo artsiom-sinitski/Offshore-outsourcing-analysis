@@ -1,0 +1,9 @@
+CREATE VIEW gdelt_view AS
+SELECT *
+  FROM gdelt_events AS ge
+ INNER JOIN gdelt_mentions gm USING ("GlobalEventId") 
+ INNER JOIN gdelt_gkg gg ON gg."DocumentIdentifier" =  gm."MentionIdentifier"
+ ORDER BY ge."SqlDate" DESC
+;
+
+
