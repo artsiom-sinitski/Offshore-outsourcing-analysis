@@ -24,9 +24,15 @@ class DownloadFiles():
 
     def generate_file_list(self, url, data_version):
         """
-        Generate a list of name of the GDELT data files stored on the web site.
-        There are version 1.0 & version 2.* GDELT data files, each version
-        requires different approach for extracting file links & names.
+        Generate the GDELT data files url list stored on the GDELT web site.
+        There is GDELT v1.0 & v2.0 data files, each version  requires
+        a different approach for extracting file links & names.
+
+        Args:
+            url (string) - path to master file list on the GDELT website
+            data_version (string) - specifies the GDELT dataset version to download
+        Returns:
+            file_list (list) - list of GDELT data file names
         """
         file_list = []
 
@@ -34,10 +40,6 @@ class DownloadFiles():
             # master text file already lists all GDELT v2 file links,
             # so no need to crawl GDELT web site for that.
             master_file_name = "masterfilelist.txt"
-
-            # events_list = []
-            # mentions_list = []
-            # gkg_list = []
 
             # create a GET response object
             r_obj = requests.get(url + master_file_name)
@@ -57,12 +59,6 @@ class DownloadFiles():
                     file_name = file_name.split("/")[-1]
 
                     file_list.append(file_name)
-                    # if file_name.endswith(".export.CSV.zip"):
-                    #     events_list.append(file_name)
-                    # elif file_name.endswith(".mentions.CSV.zip"):
-                    #     mentions_list.append(file_name)
-                    # elif file_name.endswith(".gkg.csv.zip"):
-                    #     gkg_list.append(file_name)
         else:
             # get the list of all the links on the GDELTv1 web page
             page = requests.get(url + 'index.html')
@@ -78,9 +74,15 @@ class DownloadFiles():
 
     def download_data(self, base_url, bucket_name, file_list,):
         """
-        Download data files from GDELT web site,
-        save them to an EC2 instance & unzip, then
-        save unzipped files to the AWS S3 storage
+        Downloads data files from GDELT web site, saves it to an EC2 instance
+        then unzips the files and saves to the AWS S3 storage
+
+        Args:
+            base_url (string) -  path to the GDELT dataset on the website
+            bucket_name (string)  - name of the AWS S3 bucket for storing the data files
+            file_list (string) - list of GDELT data file names
+        Returns:
+            None.
         """
         in_folder = "./data/"
 
@@ -120,6 +122,14 @@ class DownloadFiles():
 
 
     def run(self):
+        """
+        Method that outlines and executes the workflow of this class
+
+        Args:
+            None.
+        Returns:
+            None.
+        """
         file_list = []
 
         print('\n========== GDELT data transfer started! ==========\n')
