@@ -24,7 +24,7 @@ I used the [GDELT](https://www.gdeltproject.org/data.html) data set as the prima
 1. Extract the raw data into AWS S3
 2. Perform raw data transformations with Apache Spark run on EC2 cluster
 3. Store tansformed data in PostgreSQL database
-4. Retrieve and visualize data via analytics Tableau dashboard (ex.: Tableau) or access the data through web API
+4. Retrieve and visualize data via analytics dashboard (ex.: Tableau) or access the data through the web API
 5. Airflow orchestration of pipeline and daily updates with new GDELT events data
 
 # Requirements and Installation steps
@@ -48,16 +48,16 @@ Third-Party Dependencies:
 * /frontend - scripts necessary to run the demo webpage
 * /ingestion - scripts to download raw data from the GDELT web site
 * /postgres - scripts to start database server
-* /spark - scripts to start Saprk data transformations
-* /web_api - scripts to start the flask webserver for web API
+* /spark - scripts to start Spark data transformations
+* /web_api - scripts to start the flask webserver for the web API
 
 # Cluster Structure
 For my project I used 6 AWS EC2 instances:
 
 ![AWS Cluster](/docs/DWS_Cluster_Setup.png)
-* Spark Cluster (4 nodes) - Batch
+* Spark Cluster (4 nodes) - Data preprocessing
 * Database Server (1 node) - PostgreSQL
-* Flask Webserver (1 Node) - Web Api & Demo frontend
+* Flask Webserver (1 node) - Web API & demo frontend
 
 # Run the Pipeline
 #### Configuring AWS

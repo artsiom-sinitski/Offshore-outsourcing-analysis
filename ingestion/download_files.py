@@ -51,7 +51,6 @@ class DownloadFiles():
             with open("./data/" + master_file_name, "r") as file_content:
                 k = 0
                 for file_line in iter(file_content.readline, ""):
-                    # if k >= 9: break
                     k += 1
                     # extract GDELT file url only
                     file_name = file_line.split()[-1]
@@ -66,13 +65,13 @@ class DownloadFiles():
             link_list = doc.xpath("//*/ul/li/a/@href")
 
             # Right now get only the files created after 2013-04-01,
-            # Earlier versions have a different naming convention.
+            # Earlier years have a different naming convention.
             file_list = [x for x in link_list if x.endswith(".export.CSV.zip")]
            
         return file_list
 
 
-    def download_data(self, base_url, bucket_name, file_list,):
+    def download_data(self, base_url, bucket_name, file_list):
         """
         Downloads data files from GDELT web site, saves it to an EC2 instance
         then unzips the files and saves to the AWS S3 storage
@@ -100,25 +99,25 @@ class DownloadFiles():
                 with ZipFile(in_folder + file, 'r') as zip_obj:
                     zip_obj.extractall(in_folder)
 
-                file_path = in_folder + file[:-4] 
                 key = file[:-4]    #file name w/o ".zip"
-
+                file_path = in_folder + key 
+                
                 # connect to S3 storage and move the unzipped data file there
                 s3 = boto3.resource(service_name = 's3')
                 s3.create_bucket(Bucket=bucket_name)
                 s3.meta.client.upload_file(file_path, bucket_name, key)
 
-                print("'" + file[:-4] + "'" + " added to S3.")
+                print("'" + key + "'" + " added to S3.")
 
                 # delete both ziped/unzipped data files from the EC2 server
-                if os.path.exists(in_folder + file[:-4]):
+                if os.path.exists(in_folder + key):
                     os.remove(in_folder + file)
-                    os.remove(in_folder + file[:-4])
+                    os.remove(in_folder + key)
                 else:
                     print("The file doesn't exist!")
 
             except BadZipFile:
-                print("\nCoorupt '" + in_folder + file + "' archive! Skipped.\n")
+                print("\nCorrupt '" + in_folder + file + "' archive! Skipped.\n")
 
 
     def run(self):
