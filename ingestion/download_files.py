@@ -5,28 +5,38 @@ Date:   04/03/2020
 """
 
 from zipfile import ZipFile, BadZipFile
+from datetime import datetime
 import os
+import sys
 import logging
 import time
 import requests
-import lxml.html as lh
 import boto3
+#import lxml.html as lh
 
 
 class DownloadFiles():
 
-    def __init__(self):
-        logging.basicConfig(filename='../logs/download_files.log', filemode='w', level=logging.INFO)
+    def __init__(self, run_type, timestamp):
+        """
+        Class constructor that initializes created objects with the default values
+        """
+        log_fname = '../logs/download_files.log' + timestamp
+        logging.basicConfig(filename=log_fname, filemode='w', level=logging.INFO)
         # GDELT v2 config
         self.gdelt_base_url = 'http://data.gdeltproject.org/gdeltv2/'
-        self.bucket_name = 'gdelt-v2'
+        self.run_type = run_type
+        if run_type == "manual":
+            self.s3_bucket_name = 'gdelt-v2'
+        elif run_type == "schedule":
+            self.s3_bucket_name = 'gdelt-v2-delta'
         self.data_folder = "../data/"
         self.master_file_name = "masterfilelist.txt"
         self.prev_master_name = "PREVIOUS-" + self.master_file_name
         self.delta_master_name = "DELTA-" + self.master_file_name
         # GDELT v1 config
         # self.gdelt_base_url = 'http://data.gdeltproject.org/events/'
-        # self.bucket_name = 'gdelt-v1'
+        # self.s3_bucket_name = 'gdelt-v1'
 
 
     def generate_file_list(self, url, data_version):
@@ -151,7 +161,7 @@ class DownloadFiles():
 
     def run(self):
         """
-        Method that outlines and executes the workflow of this class
+        Method that outlines and executes the workflow of this class.
 
         Args:
             None.
@@ -159,17 +169,38 @@ class DownloadFiles():
             None.
         """
         file_list = []
+        file_list = self.generate_file_list(self.gdelt_base_url, "v2")
+
+        print("Master file lines read: " + str(len(file_list)), end='\n')
+        logging.info("Master file lines read: " + str(len(file_list)))
+
+        self.download_data(self.gdelt_base_url, self.s3_bucket_name, file_list)
+
+############################## End of class DownloadFiles #############################
+#######################################################################################
+
+def main():
+    if len(sys.argv) == 2 and \
+       sys.argv[1] in ["manual", "schedule"]:
+
+        run_type = sys.argv[1]
+        datetime_now = datetime.now()
+        date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
+
+        process = DownloadFiles(run_type, timestamp)
+
+        print("Date: " + date_time)
+        logging.info("Date: " + date_time)
+
+        print("Data transfer type: " + run_type)
+        logging.info("Data transfer type: " + run_type)
 
         print('\n========== GDELT data transfer started! ==========\n')
         logging.info('\n========== GDELT data transfer started! ==========\n')
 
         start_time = time.time()
-        file_list = self.generate_file_list(self.gdelt_base_url, "v2")
-
-        print("Master file lines read: " + str(len(file_list)) )
-        logging.info("Master file lines read: " + str(len(file_list)) )
-
-        self.download_data(self.gdelt_base_url, self.bucket_name, file_list)
+        process.run()
         end_time = time.time()
 
         print("----------------------------------")
@@ -178,13 +209,9 @@ class DownloadFiles():
         logging.info("Execution time: %s seconds" % round(end_time - start_time, 2))
         print('\n========== GDELT data transfer completed! ==========\n')
         logging.info('\n========== GDELT data transfer completed! ==========\n')
-
-###################### End of class DownloadFiles ########################
-#######################################################################################
-
-def main():
-    process = DownloadFiles()
-    process.run()
+    else:
+        sys.stderr.write("Correct usage: python3 download_files.py [schedule | manual]\n")
+        logging.warning("Correct usage: python3 download_files.py [schedule | manual]\n")
     
 
 if __name__ == '__main__':

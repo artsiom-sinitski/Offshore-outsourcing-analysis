@@ -68,13 +68,13 @@ psql
 ## Install Airflow
 ```bash
 pip3 install apache-airflow
-pip3 install apache-airflow[hive]
 
-export AIRFLOW_HOME=~/airflow
-export PATH=$PATH:~/.local/bin
+export AIRFLOW_HOME=~/data-warehouse-solution/airflow
 
 airflow initdb
-airflow webserver
+#start the Airflow Web GUI, default port is 8080*/
+airflow webserver -p 8088  
+airflow scheduler
 ```
 
 

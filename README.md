@@ -29,9 +29,10 @@ I used the [GDELT](https://www.gdeltproject.org/data.html) data set as the prima
 
 # Requirements and Installation steps
 Languages:
-* Python 3.5
+* Python 3.6+
 
 Technologies:
+* Apache Airflow
 * Apache Spark
 * PostgreSQL
 * Flask
@@ -44,18 +45,19 @@ Third-Party Dependencies:
 
 # Project Folder Structure
 ![Directory Structure](docs/directory_structure.png)
+* /airflow - Airflow scheduler scripts to run the DWS data update job daily
 * /docs - contains resources for the README file
 * /frontend - scripts necessary to run the demo webpage
 * /ingestion - scripts to download raw data from the GDELT web site
 * /postgres - scripts to start database server
 * /spark - scripts to start Spark data transformations
-* /web_api - scripts to start the flask webserver for the web API
+* /web_api - scripts to start the flask webserver to serve the web API
 
 # Cluster Structure
 For my project I used 6 AWS EC2 instances:
 
 ![AWS Cluster](/docs/DWS_Cluster_Setup.png)
-* Spark Cluster (4 nodes) - Data preprocessing
+* Spark Cluster (4 nodes) - Data preprocessing & Airflow scheduler
 * Database Server (1 node) - PostgreSQL
 * Flask Webserver (1 node) - Web API & demo frontend
 
@@ -74,7 +76,7 @@ Quite a few project's processes rely on environment variables. It will also be d
 #### Downloading the raw GDELT data (Ingestion step)
 SSH into the master node (EC2) instance and run:
 ```bash
-bash ./ingestion/run_download.sh
+bash ./ingestion/run_download.sh [--schedule | --manual]
 ```
 
 #### Spinning up the Spark cluster
@@ -93,7 +95,7 @@ role: master
 use_eips: true
 ```
 
-#### Running the Spark cluster (Data processing step)
+#### Running the Spark cluster (Transformation & Load step)
 SSH into the master node and run:
 ```bash
 peg ssh spark-cluster 1
@@ -107,13 +109,19 @@ HINT: Use Ctrl + 'a' + 'd' to detach the process and continue its execution as a
 
 To start the data transformation process using Spark run:
 ```bash
-bash ./spark/run_spark.sh
+bash ./spark/run_spark.sh  [--schedule | --manual]
 ```
 
 #### Running the PostgreSQL database server
 SSH into the flask server and run:
 ```bash
 bash ./postgres/run_postgres.sh
+```
+
+#### Running the Airflow process
+SSH into the Spark master node and run:
+```bash
+bash ./airflow/batch_scheduler.sh
 ```
 
 #### Running the web API flask server
