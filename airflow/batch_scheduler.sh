@@ -10,6 +10,7 @@ FILE=batch_scheduler.py
 #   sudo mv $FILE $FOLDER
 # fi
 
+cd $AIRFLOW_HOME
 python3 $FOLDER/$FILE
 
 airflow initdb
