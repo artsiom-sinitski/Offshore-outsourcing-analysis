@@ -1,10 +1,16 @@
 /data
+/logs
+/__pycache__
 .~*
 *.csv
 *.jar
+*.pyc
+*.pid
+*.out
 test*
 .vscode
 credentials*
-*.pyc
+*cassandra*
+
 
 

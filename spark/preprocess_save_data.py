@@ -2,7 +2,7 @@
 Purpose: Retrieve the data from AWS S3 bucket, transform the dataset and store it in PostgreSQL database.  
 Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
-Date:   02/03/2020
+Date:   04/03/2020
 """
 
 from pyspark.sql import SparkSession
@@ -10,18 +10,21 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from schema import GdeltDataSchema
 from postgres_connector import PostgresConnector
+from datetime import datetime
+import time
+import sys
 import logging
 import boto3
-import time
 
 
 class PreprocessAndSaveDataToDB():
 
-    def __init__(self):
+    def __init__(self, run_type, timestamp):
         """
         Class constructor that initializes created objects with the default values
         """
-        logging.basicConfig(level=logging.INFO)
+        log_fname = "../logs/preprocess_data.log" + timestamp
+        logging.basicConfig(filename=log_fname, filemode='w', level=logging.INFO)
 
         self.spark = SparkSession \
                     .builder \
@@ -30,7 +33,10 @@ class PreprocessAndSaveDataToDB():
                     .getOrCreate()
 
         # self.s3_bucket_name = "gdelt-v1"
-        self.s3_bucket_name = "gdelt-v2"
+        if run_type == "manual":
+            self.s3_bucket_name = 'gdelt-v2'
+        elif run_type == "schedule":
+            self.s3_bucket_name = 'gdelt-v2-delta'
         self.s3_bucket_url = "s3a://" + self.s3_bucket_name + '/'
 
         self.delimeter = '\t'
@@ -45,11 +51,7 @@ class PreprocessAndSaveDataToDB():
     def read_csv_from_s3(self, file_path):
         """
         Reads the data from AWS S3 storage and loads it into Spark's data frame object.
-        Args:
-            type file_path (string):  path to CSV data files stored in S3
-        Returns:
-            df (data frame):    spark dataframe object containing raw GDELT data
-            schema_type (string):   GDELT schema type to be enforced
+        :type file_path:     str        path to CSV data files stored in S3
         """
         schema = None
         schema_type = None
@@ -69,17 +71,16 @@ class PreprocessAndSaveDataToDB():
                         .options(header='false', inferSchema='false', sep=self.delimeter)\
                         .schema(schema)\
                         .load(file_path)
-        
         return df, schema_type
 
 
     def transform_df(self, df, schema_type):
         """
-        Casts data frame column values to match the GDELT schema.
+        Casts data frame column values to match the GDELT specified data types.
 
         Args:
             df (data frame): Spark data frame object with raw data to be transformed.
-            schema_type (string): Specifies the schema to be used for data transformation
+            schema_type (str): Specifies which schema to be used for data transformation
 
         Returns:
             df (data frame): Data frame with transformed data
@@ -207,11 +208,11 @@ class PreprocessAndSaveDataToDB():
         Writes data frame object content to the postgres database.
 
         Args:
-            data_frame (data frame):    Spark data frame object containing transformed data.
-            schema_type (string):   Schema type to choose the appropriate data table to write into
+            data_frame (data frame): Spark data frame object with transformed data.
+            schema_type (str): Specifies which schema to be used for data transformation
 
         Returns:
-            None
+            None.
         """
         db_table = None
         if schema_type == "event":
@@ -250,14 +251,40 @@ class PreprocessAndSaveDataToDB():
             f_counter += 1
             print("\n>>>>> #" + str(f_counter) + " - '" + file_name.key + "'" +\
                   " processed in %s seconds\n" % round(end_time - start_time, 2))
+            logging.info("\n>>>>> #" + str(f_counter) + " - '" + file_name.key + "'" +\
+                  " processed in %s seconds\n" % round(end_time - start_time, 2))
 
 ###################### End of class PreprocessTransferDataToDB ########################
 #######################################################################################
 
 def main():
-    process = PreprocessAndSaveDataToDB()
-    process.run()
-    print('\n========== Finished moving data from S3 to database! ==========\n')
+    
+    if len(sys.argv) == 2 and \
+       sys.argv[1] in ["manual", "schedule"]:
+       
+        run_type = sys.argv[1]
+        datetime_now = datetime.now()
+        date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
+
+        process = PreprocessAndSaveDataToDB(run_type, timestamp)
+
+        print("Date: " + date_time)
+        logging.info("Date: " + date_time)
+
+        print("Data transfer type: " + run_type)
+        logging.info("Data transfer type: " + run_type)
+
+        print("\n========== Started moving data from S3 to database! ==========\n")
+        logging.info("\n========== Started moving data from S3 to database! ==========\n")
+
+        process.run()
+
+        print("\n========== Finished moving data from S3 to database! ==========\n")
+        logging.info("\n========== Finished moving data from S3 to database! ==========\n")
+    else:
+        sys.stderr.write("Correct usage: python3 preprocess_save_data.py [schedule | manual]\n")
+        logging.warning("Correct usage: python3 python3 preprocess_save_data.py [schedule | manual]\n")
 
 
 if __name__ == '__main__':
