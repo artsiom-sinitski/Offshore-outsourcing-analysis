@@ -66,12 +66,13 @@ class PreprocessAndSaveDataToCentralStorage():
             schema = GdeltDataSchema().getGkgSchema()
             schema_type = "gkg"
 
-        # .option("escape", "\"")
         df = self.spark.read \
                         .format('csv') \
                         .options(header='false', inferSchema='false', sep=self.delimeter) \
                         .schema(schema) \
                         .load(file_path)
+                        #.option("escape", "\"")
+                        #.option("quote", "\"")
         return df, schema_type
 
 
@@ -131,6 +132,7 @@ class PreprocessAndSaveDataToCentralStorage():
             df = df.withColumn('Actor1Geo_FullName', df.Actor1Geo_FullName.cast('STRING'))
             df = df.withColumn('Actor1Geo_CountryCode', df.Actor1Geo_CountryCode.cast('STRING'))
             df = df.withColumn('Actor1Geo_ADM1Code', df.Actor1Geo_ADM1Code.cast('STRING'))
+            df = df.withColumn('Actor1Geo_ADM2Code', df.Actor1Geo_ADM1Code.cast('STRING'))
             df = df.withColumn('Actor1Geo_Lat', df.Actor1Geo_Lat.cast('STRING'))
             df = df.withColumn('Actor1Geo_Long', df.Actor1Geo_Long.cast('STRING'))
             df = df.withColumn('Actor1Geo_FeatureID', df.Actor1Geo_FeatureID.cast('STRING'))
@@ -139,6 +141,7 @@ class PreprocessAndSaveDataToCentralStorage():
             df = df.withColumn('Actor2Geo_FullName', df.Actor2Geo_FullName.cast('STRING'))
             df = df.withColumn('Actor2Geo_CountryCode', df.Actor2Geo_CountryCode.cast('STRING'))
             df = df.withColumn('Actor2Geo_ADM1Code', df.Actor2Geo_ADM1Code.cast('STRING'))
+            df = df.withColumn('Actor2Geo_ADM2Code', df.Actor2Geo_ADM1Code.cast('STRING'))
             df = df.withColumn('Actor2Geo_Lat', df.Actor2Geo_Lat.cast('STRING'))
             df = df.withColumn('Actor2Geo_Long', df.Actor2Geo_Long.cast('STRING'))
             df = df.withColumn('Actor2Geo_FeatureID', df.Actor2Geo_FeatureID.cast('STRING'))
@@ -147,6 +150,7 @@ class PreprocessAndSaveDataToCentralStorage():
             df = df.withColumn('ActionGeo_FullName', df.ActionGeo_FullName.cast('STRING'))
             df = df.withColumn('ActionGeo_CountryCode', df.ActionGeo_CountryCode.cast('STRING'))
             df = df.withColumn('ActionGeo_ADM1Code', df.ActionGeo_ADM1Code.cast('STRING'))
+            df = df.withColumn('ActionGeo_ADM2Code', df.ActionGeo_ADM1Code.cast('STRING'))
             df = df.withColumn('ActionGeo_Lat', df.ActionGeo_Lat.cast('STRING'))
             df = df.withColumn('ActionGeo_Long', df.ActionGeo_Long.cast('STRING'))
             df = df.withColumn('ActionGeo_FeatureID', df.ActionGeo_FeatureID.cast('STRING'))
