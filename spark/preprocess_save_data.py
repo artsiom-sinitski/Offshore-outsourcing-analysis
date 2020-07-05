@@ -66,10 +66,11 @@ class PreprocessAndSaveDataToDB():
             schema = GdeltDataSchema().getGkgSchema()
             schema_type = "gkg"
 
-        df = self.spark.read\
-                        .format('csv')\
-                        .options(header='false', inferSchema='false', sep=self.delimeter)\
-                        .schema(schema)\
+        # .option("escape", "\"")
+        df = self.spark.read \
+                        .format('csv') \
+                        .options(header='false', inferSchema='false', sep=self.delimeter) \
+                        .schema(schema) \
                         .load(file_path)
         return df, schema_type
 
@@ -115,7 +116,7 @@ class PreprocessAndSaveDataToDB():
             df = df.withColumn('Actor2Type2Code', df.Actor2Type2Code.cast('STRING'))
             df = df.withColumn('Actor2Type3Code', df.Actor2Type3Code.cast('STRING'))
 
-            df = df.withColumn('IsRootEvent', df.IsRootEvent.cast('BOOLEAN'))
+            df = df.withColumn('IsRootEvent', df.IsRootEvent.cast('INT'))
             df = df.withColumn('EventCode', df.EventCode.cast('STRING'))
             df = df.withColumn('EventBaseCode', df.EventBaseCode.cast('STRING'))
             df = df.withColumn('EventRootCode', df.EventRootCode.cast('STRING'))
@@ -272,8 +273,8 @@ def main():
         print("Date: " + date_time)
         logging.info("Date: " + date_time)
 
-        print("Data transfer type: " + run_type)
-        logging.info("Data transfer type: " + run_type)
+        print("Execution mode: " + run_type)
+        logging.info("Execution mode: " + run_type)
 
         print("\n========== Started moving data from S3 to database! ==========\n")
         logging.info("\n========== Started moving data from S3 to database! ==========\n")
@@ -284,7 +285,7 @@ def main():
         logging.info("\n========== Finished moving data from S3 to database! ==========\n")
     else:
         sys.stderr.write("Correct usage: python3 preprocess_save_data.py [schedule | manual]\n")
-        logging.warning("Correct usage: python3 python3 preprocess_save_data.py [schedule | manual]\n")
+        logging.warning("Correct usage: python3 preprocess_save_data.py [schedule | manual]\n")
 
 
 if __name__ == '__main__':
