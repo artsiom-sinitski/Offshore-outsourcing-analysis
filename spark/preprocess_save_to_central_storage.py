@@ -17,7 +17,7 @@ import logging
 import boto3
 
 
-class PreprocessAndSaveDataToDB():
+class PreprocessAndSaveDataToCentralStorage():
 
     def __init__(self, run_type, timestamp):
         """
@@ -268,7 +268,7 @@ def main():
         date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
         timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
 
-        process = PreprocessAndSaveDataToDB(run_type, timestamp)
+        process = PreprocessAndSaveDataToCentralStorage(run_type, timestamp)
 
         print("Date: " + date_time)
         logging.info("Date: " + date_time)
