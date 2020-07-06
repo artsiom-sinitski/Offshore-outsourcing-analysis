@@ -12,7 +12,7 @@
 8. [Author](README.md#author)
 
 # Introduction
-This project aims to create a simple and cost-conscious solution for collecting, managing and analyzing large datasets, so that data analysts can discover, visualize and present their findings with ease.
+This project aims to create a simple and cost-conscious data warehouse solution for collecting, managing and analyzing the GDELT dataset, so that data analysts can discover, visualize and present their findings with ease.
 
 
 # Data Sources
@@ -21,17 +21,32 @@ I used the [GDELT](https://www.gdeltproject.org/data.html) data set as the prima
 
 # Approach
 ![Pipeline:](docs/DWS_pipeline.png)
-1. Extract the raw data into AWS S3
-2. Perform raw data transformations with Apache Spark run on EC2 cluster
-3. Store tansformed data in PostgreSQL database
-4. Retrieve and visualize data via analytics dashboard (ex.: Tableau) or access the data through the web API
-5. Airflow orchestration of pipeline and daily updates with new GDELT events data
+The latest trends in technology influenced my decison to host the Data Warehouse insfrustructure in the AWS cloud. The DWS solution is built using the principles of Layered Scallable (LSA) architechture:
+* Primary (Staging) Data layer
+* Core Data layer
+* Data Mart layer
+* Service layer (to be developed...)
+  
+Currently, there are 2 separate ETL processes that provide data movement within the DWS solution.
+ETL #1 connects the Staging and Core data layers and performs the following work:
+  1. Extract the raw data into AWS S3 object storage (staging area).
+  2. Enforce the GDELT schema onto the raw data using Apache Spark distributed computing engine (run on EC2 cluster).
+  3. Store tansformed data in the Central Storage (PostgreSQL database).
+   
+ETL #2 connects the Core and Data Mart layers and  performs the following work:
+  1. Retrieve the structured data from the Central Storage and load into the Spark engine.
+  2. Model the data to comply with the Star schema used in the Data Mart. The Star Schema enables faster and easier and more specialized data analysis due to relativley small size fo the data set stored.
+  3. Load tansformed data into the Data Mart (PostgreSQL database).
+   
+Data analysis and visualization is done via analytics dashboard (ex.: Tableau). Also, it is possible to access the data through the web API.
+Daily updates of the GDELT data for the Central Storage and Data Mart are handled by the Apache Airflow workflow orchestration engine during the times when business activities are minimal.
 
 # Requirements and Installation steps
-Languages:
+Programming Languages:
 * Python 3.6+
 
 Technologies:
+* Amazon Web Services (AWS)
 * Apache Airflow
 * Apache Spark
 * PostgreSQL
