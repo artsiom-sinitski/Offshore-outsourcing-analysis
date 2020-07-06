@@ -1,0 +1,116 @@
+CREATE DATABASE Protests_Datamart
+  WITH OWNER = 'postgres' 
+       TEMPLATE = DEFAULT
+;
+
+/*
+CREATE TABLE "Event_Fact" (
+  "actor1_id" varchar NOT NULL,
+  "actor2_id" varchar NOT NULL,
+  "event_id" varchar NOT NULL,
+  "actor1_geo_id" varchar NOT NULL,
+  "actor2_geo_id" varchar NOT NULL,
+  "action_geo_id" varchar NOT NULL,
+  "goldstein_scale" float DEFAULT 0,
+  "num_mentions" int DEFAULT 0,
+  "num_sources" int DEFAULT 0,
+  "num_articles" int DEFAULT 0,
+  "avg_tone" float DEFAULT 0,
+  "day" date,
+  "date_added" datetime,
+  "GlobalEventId" varchar NOT NULL,
+  PRIMARY KEY ("actor1_id", "actor2_id", "event_id", "actor1_geo_id", "actor2_geo_id", "action_geo_id")
+);
+*/
+
+CREATE TABLE "Event_Dim" (
+  "event_id" varchar PRIMARY KEY,
+  "is_root_event" varchar,
+  "event_code" varchar,
+  "event_base_code" varchar,
+  "event_root_code" varchar,
+  "quad_class" varchar,
+  "src_url" varchar
+);
+
+/*
+CREATE TABLE "Actor1_Dim" (
+  "actor1_id" int PRIMARY KEY,
+  "actor1_code" varchar,
+  "actor1_name" varchar,
+  "actor1_country_code" varchar,
+  "actor1_known_group_code" varchar,
+  "actor1_ethnic_code" varchar,
+  "actor1_religion1_code" varchar,
+  "actor1_religion2_code" varchar,
+  "actor1_type1_code" varchar
+);
+
+CREATE TABLE "Actor1Geo_Dim" (
+  "actor1geo_id" int PRIMARY KEY,
+  "actor1_geo_type" varchar,
+  "actor1_geo_fullname" varchar,
+  "actor1_geo_countrycode" varchar,
+  "actor1_geo_adm1code" varchar,
+  "actor1_geo_lat" float,
+  "actor1_geo_long" float
+);
+
+CREATE TABLE "Actor2_Dim" (
+  "actor2_id" int PRIMARY KEY,
+  "actor2_code" varchar,
+  "actor2_name" varchar,
+  "actor2_country_code" varchar,
+  "actor2_known_group_code" varchar,
+  "actor2_ethnic_code" varchar,
+  "actor2_religion1_code" varchar,
+  "actor2_religion2_code" varchar,
+  "actor2_type1_code" varchar
+);
+
+CREATE TABLE "Actor2Geo_Dim" (
+  "actor2_geo_id" int PRIMARY KEY,
+  "actor2_geo_type" varchar,
+  "actor2_geo_fullname" varchar,
+  "actor2_geo_countrycode" varchar,
+  "actor2_geo_lat" float,
+  "actor2_geo_long" float
+);
+
+CREATE TABLE "ActionGeo_Dim" (
+  "action_geo_id" int PRIMARY KEY,
+  "action_geo_type" varchar,
+  "action_geo_fullname" varchar,
+  "action_geo_countrycode" varchar,
+  "action_geo_lat" float,
+  "action_geo_long" float
+);
+
+CREATE TABLE "Mention_Dim" (
+  "mention_id" varchar PRIMARY KEY,
+  "mention_type" varchar,
+  "mention_src_name" varchar,
+  "mention_doc_length" int,
+  "mention_doc_tone" int,
+  "GlobalEventId" varchar
+);
+
+ALTER TABLE "Actor1_Dim" ADD FOREIGN KEY ("actor1_id") REFERENCES "Event_Fact" ("actor1_id");
+
+ALTER TABLE "Actor1Geo_Dim" ADD FOREIGN KEY ("actor1geo_id") REFERENCES "Event_Fact" ("actor1_geo_id");
+
+ALTER TABLE "Actor2_Dim" ADD FOREIGN KEY ("actor2_id") REFERENCES "Event_Fact" ("actor2_id");
+
+ALTER TABLE "Actor2Geo_Dim" ADD FOREIGN KEY ("actor2_geo_id") REFERENCES "Event_Fact" ("actor2_geo_id");
+
+ALTER TABLE "ActionGeo_Dim" ADD FOREIGN KEY ("action_geo_id") REFERENCES "Event_Fact" ("action_geo_id");
+
+ALTER TABLE "Event_Dim" ADD FOREIGN KEY ("event_id") REFERENCES "Event_Fact" ("event_id");
+
+ALTER TABLE "Mention_Dim" ADD FOREIGN KEY ("GlobalEventId") REFERENCES "Event_Fact" ("GlobalEventId");
+
+
+COMMENT ON COLUMN "Event_Fact"."day" IS 'When event occured';
+
+COMMENT ON COLUMN "Event_Fact"."date_added" IS 'When event recorded by GDELT';
+*/
