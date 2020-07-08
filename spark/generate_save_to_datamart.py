@@ -5,18 +5,18 @@ Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 Date: 07/02/2020
 """
-
 from postgres_connector import PostgresConnector
+from constants import EndPoint
+
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 from datetime import datetime
-import sys
+from random import randrange
 import logging
+import sys
 
-from pyspark.sql import DataFrameWriter
 
-
-class GenerateAndSaveDataToDatamart():
+class GenerateAndSaveDataToDatamart(object):
 
     def __init__(self, run_type, timestamp):
         """
@@ -26,6 +26,7 @@ class GenerateAndSaveDataToDatamart():
         logging.basicConfig(filename=log_fname, filemode='w', level=logging.INFO)
         # self.date_from = date_from
         # self.date_to = date_to
+        self.mode = "append"
         
         self.spark = SparkSession \
                     .builder \
@@ -35,31 +36,21 @@ class GenerateAndSaveDataToDatamart():
 
 
     #TODO:
-    # (1) - connect via postgres connector class
-    # (2) - need to read data by a date period and save it to a parquet file
-    # select count group yb date to deterine the size of the date slice
+    # (1) - need to read data by a date period and save it to a parquet file
+    # select count group by date to determine the size of the date slice
     def read_data_from_central_storage(self):
-        database = "postgres"   #get_env_var("POSTGRES_DB")
-        table = "gdelt_events"
-        host = "10.0.0.04"      #get_env_var("POSTGRES_HOST")
-        port = "5432"
-        url = "jdbc:postgresql://{host}:{port}/{db}".format(host=host, \
-                                                            port=port, \
-                                                            db=database)
-        query = "(select * from gdelt_events where \"EventRootCode\" like '14%' limit 25) ge"
+        query = "(select * from gdelt_events where \"EventRootCode\" like '14%' limit 17) ge"
 
-        properties = { "user"     : "postgres", 
-                       "password" : "",
-                       "driver"   : "org.postgresql.Driver"
-                     }
+        connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
+        df = connector.read_from_db(self.spark, query)
 
-        # connector = PostgresConnector()
-        # connector.write_to_db(data_frame, db_table, self.mode)
+        # The line below works as expected:
+        #   df = self.spark.read.jdbc(url=url, table=query, properties=properties)
+        # Also, it should work how it is written below but it doesn't:
+        #   df = DataFrameReader(self.spark).jdbc(url=url, table=query, properties=properties)
+        #see https://spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.DataFrameReader
 
-        df = self.spark.read \
-                       .jdbc(url=url, table=query, properties=properties)
-
-        #df.printSchema()
+        # df.printSchema()
         df.show(3, True)
         return df
 
@@ -68,20 +59,20 @@ class GenerateAndSaveDataToDatamart():
     # (2) - add the rest of the star schema tables
     def populate_datamart_tables(self, df):
         dm_table_dict = dict()
-        base_id = int(datetime.now().strftime("1%d%H"))
+        #generate a pseudorandom base id -> random int from (1, 9) range || seconds
+        base_id = datetime.now().strftime(str(randrange(1,9)) + "%S.%f").replace('.', '')[:-2]
 
-        # =========== Event_Dim table =======================
+        # =========== Event_Dim table ======================= 
         cols = ["IsRootEvent", "EventCode", "EventBaseCode", \
                 "EventRootCode", "QuadClass", "SourceUrl"]
         event_dim_id = base_id + F.monotonically_increasing_id()
-        where_clause = "\"EventRootCode\" like '14%'"
-        event_dim_df = df.select(*cols).withColumn("event_id", event_dim_id)
-        #.where(where_clause)
+        #where_clause = "\"EventRootCode\" like '14%'"
+        event_dim_df = df.select(*cols).withColumn("event_id", F.lit(event_dim_id))
 
         #event_dim_df.printSchema()
-        print("\n*** DataFrame count: ", event_dim_df.count())
         print("\n=========================================================\n")
         #event_dim_df.explain()
+        print("\n*** DataFrame count: ", event_dim_df.count())
         print("\n=========================================================\n")
         event_dim_df.show(5, True)
 
@@ -89,25 +80,14 @@ class GenerateAndSaveDataToDatamart():
         return dm_table_dict
 
 
-    #TODO
     def save_tables_to_datamart(self, dm_table_dict):
-        database = "Protests_Datamart"
-        host = "10.0.0.04"
-        port = "5432"
-        url = "jdbc:postgresql://{host}:{port}/{db}".format(host=host, \
-                                                            port=port, \
-                                                            db=database)
-        table = "Event_Dim"
-        mode = 'append'
-        properties = { "user"     : "postgres", 
-                       "password" : "",
-                       "driver"   : "org.postgresql.Driver"
-                     }
-        df = dm_table_dict[table]
+        connector = PostgresConnector(EndPoint.PROTESTS_DATAMART.value)
 
-        DataFrameWriter(df).jdbc(url, table, mode, properties)
-        print("\n***** Saved dataframe to Data Mart! *****\n")
+        for table in dm_table_dict.keys():
+            df = dm_table_dict[table]
+            connector.write_to_db(df, table, self.mode)
 
+        print("\n***** Saved dataframe to Datamart! *****\n")
 
 
     #TODO
@@ -115,7 +95,7 @@ class GenerateAndSaveDataToDatamart():
     def run(self):
         dw_df = self.read_data_from_central_storage()
         dm_table_dict = self.populate_datamart_tables(dw_df)
-        print("\nDataFrames Dict content: ", dm_table_dict)
+        #print("\n****** DataFrames Dict content: ", dm_table_dict)
         self.save_tables_to_datamart(dm_table_dict)
 
 ################## End Of GenerateAndSaveDataToDatamart class ################

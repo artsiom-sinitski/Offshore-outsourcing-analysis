@@ -1,20 +1,21 @@
 """
-Purpose: Retrieve the data from AWS S3 bucket, transform the dataset and store it in the Central Storage (PostgreSQL database).  
+Purpose: To implemet ETL #1, which retrieves the data from AWS S3 bucket, enforces the GDELT schema onto the dataset and stores it in the Central Storage (PostgreSQL database).  
 Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
-Date:   04/03/2020
 """
+from constants import EndPoint
+from schema import GdeltDataSchema
+
+from postgres_connector import PostgresConnector
 
 from pyspark.sql import SparkSession
-#from pyspark.sql import SQLContext
 from pyspark.sql import functions as F
-from schema import GdeltDataSchema
-from postgres_connector import PostgresConnector
 from datetime import datetime
-import time
 import sys
-import logging
+import time
 import boto3
+import logging
+
 
 
 class PreprocessAndSaveDataToCentralStorage():
@@ -227,7 +228,7 @@ class PreprocessAndSaveDataToCentralStorage():
         elif schema_type == "gkg":
             db_table = self.gkg_table
 
-        connector = PostgresConnector()
+        connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
         connector.write_to_db(data_frame, db_table, self.mode)
 
 
