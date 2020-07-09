@@ -18,8 +18,8 @@ CREATE TABLE Event_Fact (
   "NumSources" int DEFAULT 0,
   "NumArticles" int DEFAULT 0,
   "AvgTone" float DEFAULT 0,
-  "Day" date,
-  "DateAdded" datetime,
+  "SqlDate" date,
+  "DateAdded" timestamp,
   "GlobalEventId" varchar(50) NOT NULL,
   PRIMARY KEY (actor1_id, actor2_id, event_id, actor1geo_id, actor2geo_id, actiongeo_id)
 );
