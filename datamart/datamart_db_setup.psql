@@ -97,7 +97,7 @@ CREATE TABLE Mention_Dim (
   mention_id varchar(50) PRIMARY KEY,
   "MentionType" varchar(6),
   "MentionSourceName" varchar(255),
-  "MentionDocLenh" int,
+  "MentionDocLen" int,
   "MentionDocTone" int,
   "GlobalEventId" varchar(50)
 );
