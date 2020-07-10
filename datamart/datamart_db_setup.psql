@@ -13,11 +13,11 @@ CREATE TABLE Event_Fact (
   actor1geo_id varchar(50) NOT NULL,
   actor2geo_id varchar(50) NOT NULL,
   actiongeo_id varchar(50) NOT NULL,
-  "GoldsteinScale" float DEFAULT 0,
+  "GoldsteinScale" float,
   "NumMentions" int DEFAULT 0,
   "NumSources" int DEFAULT 0,
   "NumArticles" int DEFAULT 0,
-  "AvgTone" float DEFAULT 0,
+  "AvgTone" float,
   "SqlDate" date,
   "DateAdded" timestamp,
   "GlobalEventId" varchar(50) NOT NULL,
@@ -99,7 +99,7 @@ CREATE TABLE Mention_Dim (
   "MentionSourceName" varchar(255),
   "MentionDocLen" int,
   "MentionDocTone" int,
-  "GlobalEventId" varchar(50)
+  "GlobalEventId" varchar(50) NOT NULL
 );
 */
 
