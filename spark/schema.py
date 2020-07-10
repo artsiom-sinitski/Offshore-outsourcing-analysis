@@ -3,11 +3,7 @@ Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 Date:   02/03/2020
 """
-
-from pyspark.sql.types import StructType, StructField,\
-                              StringType, IntegerType,\
-                              DateType, BooleanType,\
-                              FloatType
+from pyspark.sql.types import StructType, StructField, StringType
 
 
 class GdeltDataSchema(object):
