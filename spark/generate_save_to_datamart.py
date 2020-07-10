@@ -18,7 +18,7 @@ import sys
 
 class GenerateAndSaveDataToDatamart(object):
 
-    def __init__(self, run_type, timestamp):
+    def __init__(self, run_type, timestamp, query):
         """
         Class constructor that initializes created objects with the default values
         """
@@ -27,6 +27,7 @@ class GenerateAndSaveDataToDatamart(object):
         # self.date_from = date_from
         # self.date_to = date_to
         self.mode = "append"
+        self.query = query
 
         self.dm_cols_dict = dict()
         self.dm_row_id_names_dict = dict()
@@ -59,27 +60,28 @@ class GenerateAndSaveDataToDatamart(object):
                                            "Actor1Religion2Code", "Actor1Type1Code"]
         self.dm_row_id_names_dict[dm_table_name] = "actor1_id"
 
-        #dm_table_name = "Actor2_Dim"
+        # dm_table_name = "Actor2_Dim"
         # self.dm_cols_dict["Actor2_Dim"] = ["Actor2Code", "Actor2Name", "Actor2CountryCode", \
         #                                     "Actor2KnownGroupCode", "Actor2EthnicCode", "Actor2Religion1Code", \
         #                                     "Actor2Religion2Code", "Actor2Type1Code"]
-        #self.dm_row_id_names_dict[dm_table_name] = "actor2_id"
+        # self.dm_row_id_names_dict[dm_table_name] = "actor2_id"
 
-        #dm_table_name = "Actor1Geo_Dim"
+        dm_table_name = "Mention_Dim"
+        self.dm_cols_dict[dm_table_name] = ["MentionType", "MentionSourceName", "MentionDocLen", \
+                                            "MentionDocTone", "GlobalEventId"]
+        self.dm_row_id_names_dict[dm_table_name] = "mention_id"
 
 
     #TODO:
     # (1) - need to read data by a date period and save it to a parquet file
     # select count group by date to determine the size of the date slice
     # (2) pass query from the outside
-    def read_data_from_central_storage(self):
-        query = "(select * from gdelt_events where \"EventRootCode\" like '14%' limit 3) ge"
-
+    def read_data_from_central_storage(self, query):
         connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
         df = connector.read_from_db(self.spark, query)
 
         # df.printSchema()
-        df.show(3, True)
+        df.show(5, True)
         return df
 
 
@@ -88,12 +90,19 @@ class GenerateAndSaveDataToDatamart(object):
     # (1) - base id should be the max row_id from the Event_Fact table
     def populate_datamart_tables(self, df):
         dm_tables_dict = dict()
+        # below need to compute the max id from the event_fact table, as the number of rows
+        # in the facts table will be equal to the number of rows in all other dimentions tables,
+        # except for the mentions_dim table.
         #generate a pseudorandom base id -> random int from (1, 9) range || seconds
         base_id = datetime.now().strftime(str(randrange(1,9)) + "%S.%f").replace('.', '')[:-2]
         unique_id = base_id + F.monotonically_increasing_id()
         row_id = F.lit(unique_id)
 
+        # need to extract the max(id) from the 'mention_dim' table
+        # max_mention_id = "select max(mention_id) from mention_id"
+
         # loop through the dict that holds columns for appropriate tables
+        # and perform transformation necessary for the specified table
         for table in self.dm_cols_dict.keys():
             cols = self.dm_cols_dict[table]
             if table == "Event_Fact":
@@ -103,6 +112,21 @@ class GenerateAndSaveDataToDatamart(object):
                                          .withColumn("actor1geo_id", F.lit("null")) \
                                          .withColumn("actor2geo_id", F.lit("null")) \
                                          .withColumn("actiongeo_id", F.lit("null"))
+            elif table == "Mention_Dim":
+                # get GlobalEventIds
+                event_id_rows = df.select("GlobalEventId").collect()
+
+                # output from the code below will be -> event_ids_list = "'926862758','926862759', ..."
+                event_ids_list = ["'" + row.GlobalEventId + "'" for row in event_id_rows]
+                # convert the list to a string of comma-separated ids
+                event_ids_list = ",".join(event_ids_list) 
+
+                #print("ids_list = ", event_ids_list, end="\n")
+                # connect to the mentions table and retrieve recs with such GEI
+                where_clause = "where \"GlobalEventId\" in (" + event_ids_list + ")"
+                query = "(select * from gdelt_mentions " + where_clause + ") gm_view"
+                mention_df = self.read_data_from_central_storage(query)
+                tmp_df = mention_df.select(*cols).withColumn(self.dm_row_id_names_dict[table], row_id)
             else:
                 tmp_df = df.select(*cols).withColumn(self.dm_row_id_names_dict[table], row_id)
             
@@ -110,56 +134,6 @@ class GenerateAndSaveDataToDatamart(object):
 
             print("\n*** " + table + " DataFrame count: ", tmp_df.count(), end='\n')
             tmp_df.show(5, True)
-
-        # ==================== Event_Dim table ====================================
-        # ========================================================================= 
-        # cols = ["IsRootEvent", "EventCode", "EventBaseCode", \
-        #         "EventRootCode", "QuadClass", "SourceUrl"]
-        # event_id = F.lit(unique_id)
-        # event_dim_df = df.select(*cols).withColumn("event_id", event_id)
-
-        # #event_dim_df.printSchema()
-        # #event_dim_df.explain()
-        # print("\n=========================================================\n")
-        # print("\n*** Event_Dim DataFrame count: ", event_dim_df.count())
-        # print("\n=========================================================\n")
-        # event_dim_df.show(5, True)
-
-        # dm_tables_dict["Event_Dim"] = event_dim_df
-
-        # # ==================== Actor1_Dim table =================================
-        # # =======================================================================
-        # cols = ["Actor1Code", "Actor1Name", "Actor1CountryCode", "Actor1KnownGroupCode", \
-        #         "Actor1EthnicCode", "Actor1Religion1Code", "Actor1Religion2Code", "Actor1Type1Code"]
-        # actor1_id = F.lit(unique_id)
-        # actor1_dim_df = df.select(*cols).withColumn("actor1_id", actor1_id)
-
-        # #event_dim_df.printSchema()
-        # print("\n=========================================================\n")
-        # print("\n*** Actor1_Dim DataFrame count: ", actor1_dim_df.count())
-        # print("\n=========================================================\n")
-        # actor1_dim_df.show(5, True)
-
-        # dm_tables_dict["Actor1_Dim"] = actor1_dim_df
-
-        # # ==================== Event_Fact table =================================
-        # # =======================================================================
-        # cols = ["GoldsteinScale", "NumMentions", "NumSources", "NumArticles", \
-        #         "AvgTone", "SqlDate", "DateAdded", "GlobalEventId"]
-        # event_fact_df = df.select(*cols).withColumn("event_id", event_id) \
-        #                                 .withColumn("actor1_id", actor1_id) \
-        #                                 .withColumn("actor2_id", F.lit("null")) \
-        #                                 .withColumn("actor1geo_id", F.lit("null")) \
-        #                                 .withColumn("actor2geo_id", F.lit("null")) \
-        #                                 .withColumn("actiongeo_id", F.lit("null"))
-
-        # #event_dim_df.printSchema()
-        # print("\n=========================================================\n")
-        # print("\n*** Event_Fact DataFrame count: ", event_fact_df.count())
-        # print("\n=========================================================\n")
-        # event_fact_df.show(5, True)
-
-        # dm_tables_dict["Event_Fact"] = event_fact_df
 
         return dm_tables_dict
 
@@ -182,9 +156,8 @@ class GenerateAndSaveDataToDatamart(object):
     #TODO
     #(1) - loop through the data based on the date range
     def run(self):
-        dw_df = self.read_data_from_central_storage()
+        dw_df = self.read_data_from_central_storage(self.query)
         dm_tables_dict = self.populate_datamart_tables(dw_df)
-        #print("\n****** DataFrames Dict content: ", dm_tables_dict)
         self.save_tables_to_datamart(dm_tables_dict)
 
 ################## End Of GenerateAndSaveDataToDatamart class ################
@@ -198,7 +171,11 @@ def main():
         date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
         timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
 
-        process = GenerateAndSaveDataToDatamart(run_type, timestamp)
+        where_clause = "where \"GlobalEventId\" in ('926862758', '926862759', '926862841', '926863763')"
+        # query = "(select * from gdelt_events where \"EventRootCode\" like '14%' limit 3) ge"
+        query = "(select * from gdelt_events " + where_clause + ") gem_view"
+
+        process = GenerateAndSaveDataToDatamart(run_type, timestamp, query)
 
         print("Date: " + date_time)
         logging.info("Date: " + date_time)
