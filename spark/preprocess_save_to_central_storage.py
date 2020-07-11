@@ -5,7 +5,6 @@ Email:  artsiom.vs@gmail.com
 """
 from constants import EndPoint
 from schema import GdeltDataSchema
-
 from postgres_connector import PostgresConnector
 
 from pyspark.sql import SparkSession
@@ -17,12 +16,16 @@ import boto3
 import logging
 
 
-
 class PreprocessAndSaveDataToCentralStorage():
 
     def __init__(self, run_type, timestamp):
         """
-        Class constructor that initializes created objects with the default values
+        Class constructor that initializes created objects with the default values.
+        Args:
+            run_type (string):          either "manual" or "schedule"
+            timestamp (date & time):    date & time of this script execution
+        Returns:
+            None.
         """
         log_fname = "../logs/save_to_central_storage.log" + timestamp
         logging.basicConfig(filename=log_fname, filemode='w', level=logging.INFO)
@@ -33,26 +36,34 @@ class PreprocessAndSaveDataToCentralStorage():
                     .config('spark.executor.memory', '6gb') \
                     .getOrCreate()
 
-        # self.s3_bucket_name = "gdelt-v1"
         if run_type == "manual":
             self.s3_bucket_name = 'gdelt-v2'
+            # self.s3_bucket_name = "gdelt-v1"
         elif run_type == "schedule":
             self.s3_bucket_name = 'gdelt-v2-delta'
         self.s3_bucket_url = "s3a://" + self.s3_bucket_name + '/'
-
-        self.delimeter = '\t'
 
         self.events_table = 'gdelt_events'
         self.mentions_table = 'gdelt_mentions'
         self.gkg_table = 'gdelt_gkg'
 
+        self.events_delta_table = 'gdelt_events_delta'
+        self.mentions_delta_table = 'gdelt_mentions_delta'
+        self.gkg_delta_table = 'gdelt_gkg_delta'
+
         self.mode = 'append'
+        self.delimeter = '\t'
+
 
 
     def read_csv_from_s3(self, file_path):
         """
         Reads the data from AWS S3 storage and loads it into Spark's data frame object.
-        :type file_path:     str        path to CSV data files stored in S3
+        Args:
+            file_path (string):        path to CSV data files stored in S3
+        Returns:
+            df (data frame):        data frame that holds CSV file content
+            schema_type (string):   either "event", "mantion" or "gkg"
         """
         schema = None
         schema_type = None
@@ -68,27 +79,26 @@ class PreprocessAndSaveDataToCentralStorage():
             schema_type = "gkg"
 
         df = self.spark.read \
-                        .format('csv') \
-                        .options(header='false', inferSchema='false', sep=self.delimeter) \
-                        .schema(schema) \
-                        .load(file_path)
-                        #.option("escape", "\"")
-                        #.option("quote", "\"")
+                       .format('csv') \
+                       .options(header='false', inferSchema='false', sep=self.delimeter) \
+                       .schema(schema) \
+                       .load(file_path)
+                       #.option("escape", "\"")
+                       #.option("quote", "\"")
         return df, schema_type
+
 
 
     def transform_df(self, df, schema_type):
         """
-        Casts data frame column values to match the GDELT specified data types.
+        Casts data frame column values to match the GDELT dataset specification.
 
         Args:
-            df (data frame): Spark data frame object with raw data to be transformed.
-            schema_type (str): Specifies which schema to be used for data transformation
-
+            df (data frame):        Spark data frame object with raw data to be transformed.
+            schema_type (string):   Specifies which schema to enforce for data transformation
         Returns:
-            df (data frame): Data frame with transformed data
+            df (data frame):        Data frame with transformed GDELT data
         """
-        
         if schema_type == "event":
             df = df.withColumn('GlobalEventId', df.GlobalEventId.cast('STRING'))
             df = df.withColumn('SqlDate', F.to_date(df.SqlDate, format='yyyyMMdd'))
@@ -205,31 +215,41 @@ class PreprocessAndSaveDataToCentralStorage():
             df = df.withColumn('Amounts', df.Amounts.cast('STRING'))
             df = df.withColumn('TranslationInfo', df.TranslationInfo.cast('STRING'))
             df = df.withColumn('ExtrasXml', df.ExtrasXml.cast('STRING'))
-        
         return df
+
 
 
     def write_df_to_db(self, data_frame, schema_type):
         """
-        Writes data frame object content to the postgres database.
-
+        Writes data frame object contents to the main and delta tables (central data storage).
+        Correct table name is selected based on the schema type.
         Args:
-            data_frame (data frame): Spark data frame object with transformed data.
-            schema_type (str): Specifies which schema to be used for data transformation
-
+            data_frame (data frame):    Spark data frame object with transformed data.
+            schema_type (string):       Specifies which schema to be used for data transformation
         Returns:
             None.
         """
         db_table = None
+        delta_table = None
+
         if schema_type == "event":
             db_table = self.events_table
+            delta_table = self.events_delta_table
         elif schema_type == "mention":
             db_table = self.mentions_table
+            delta_table = self.mentions_delta_table
         elif schema_type == "gkg":
             db_table = self.gkg_table
+            delta_table = self.gkg_delta_table
 
-        connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
-        connector.write_to_db(data_frame, db_table, self.mode)
+        try:
+            connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
+            connector.write_to_db(data_frame, db_table, self.mode)
+            connector.write_to_db(data_frame, delta_table, self.mode)
+        except IOError as err:
+            sys.stderr.write("IO error when saving to database: {0}".format(err))
+            logging.warning("IO error when saving to database: {0}".format(err))
+
 
 
     def run(self):
@@ -264,7 +284,6 @@ class PreprocessAndSaveDataToCentralStorage():
 #######################################################################################
 
 def main():
-    
     if len(sys.argv) == 2 and \
        sys.argv[1] in ["manual", "schedule"]:
        
@@ -291,6 +310,7 @@ def main():
     else:
         sys.stderr.write("Correct usage: python3 preprocess_save_to_central_storage.py [schedule | manual]\n")
         logging.warning("Correct usage: python3 preprocess_save_to_central_storage.py [schedule | manual]\n")
+
 
 
 if __name__ == '__main__':

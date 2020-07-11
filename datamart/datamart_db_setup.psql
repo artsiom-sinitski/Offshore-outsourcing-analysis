@@ -48,7 +48,7 @@ CREATE TABLE Actor1_Dim (
   "Actor1Type1Code" varchar(6)
 );
 
-/*
+
 CREATE TABLE Actor1Geo_Dim (
   actor1geo_id varchar(50) PRIMARY KEY,
   "Actor1Geo_Type" varchar(6),
@@ -94,16 +94,15 @@ CREATE TABLE ActionGeo_Dim (
 
 
 CREATE TABLE Mention_Dim (
-  mention_id varchar(50) PRIMARY KEY,
+  mention_id SERIAL PRIMARY KEY,
   "MentionType" varchar(6),
   "MentionSourceName" varchar(255),
   "MentionDocLen" int,
   "MentionDocTone" int,
   "GlobalEventId" varchar(50) NOT NULL
 );
-*/
 
-/*
+
 ALTER TABLE Actor1_Dim ADD FOREIGN KEY (actor1_id) REFERENCES Event_Fact (actor1_id);
 
 ALTER TABLE Actor1Geo_Dim ADD FOREIGN KEY (actor1geo_id) REFERENCES Event_Fact (actor1geo_id);
@@ -122,4 +121,4 @@ ALTER TABLE Mention_Dim ADD FOREIGN KEY ("GlobalEventId") REFERENCES Event_Fact 
 COMMENT ON COLUMN Event_Fact."Day" IS 'When event occured';
 
 COMMENT ON COLUMN Event_Fact."DateAdded" IS 'When event recorded by GDELT';
-*/
+
