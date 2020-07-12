@@ -7,12 +7,12 @@ CREATE DATABASE Protests_Datamart
 
 
 CREATE TABLE Event_Fact (
-  actor1_id varchar(50) NOT NULL,
-  actor2_id varchar(50) NOT NULL,
-  event_id varchar(50) NOT NULL,
-  actor1geo_id varchar(50) NOT NULL,
-  actor2geo_id varchar(50) NOT NULL,
-  actiongeo_id varchar(50) NOT NULL,
+  actor1_id SERIAL NOT NULL,
+  actor2_id SERIAL NOT NULL,
+  event_id SERIAL NOT NULL,
+  actor1geo_id SERIAL NOT NULL,
+  actor2geo_id SERIAL NOT NULL,
+  actiongeo_id SERIAL NOT NULL,
   "GoldsteinScale" float,
   "NumMentions" int DEFAULT 0,
   "NumSources" int DEFAULT 0,
@@ -118,7 +118,7 @@ ALTER TABLE Event_Dim ADD FOREIGN KEY (event_id) REFERENCES Event_Fact (event_id
 ALTER TABLE Mention_Dim ADD FOREIGN KEY ("GlobalEventId") REFERENCES Event_Fact ("GlobalEventId");
 
 
-COMMENT ON COLUMN Event_Fact."Day" IS 'When event occured';
+COMMENT ON COLUMN Event_Fact."SqlDate" IS 'When event occured';
 
 COMMENT ON COLUMN Event_Fact."DateAdded" IS 'When event recorded by GDELT';
 
