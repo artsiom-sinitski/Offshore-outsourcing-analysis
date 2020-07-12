@@ -15,9 +15,9 @@ class PostgresConnector(object):
         if end_point == EndPoint.CENTRAL_STORAGE.value:
             self.host = get_env_var("POSTGRES_HOST")
             self.database = get_env_var("POSTGRES_DB")
-        elif end_point == EndPoint.PROTESTS_DATAMART.value: #"protests_datamart":
-            self.host = get_env_var("POSTGRES_HOST")    # get_env_var("DATAMART_HOST") "10.0.0.04"
-            self.database = end_point                   # get_env_var("DATAMART_DB")
+        elif end_point == EndPoint.PROTESTS_DATAMART.value:
+            self.host = get_env_var("DATAMART_HOST")
+            self.database = get_env_var("DATAMART_DB")
 
         self.port = '5432'
         self.url = 'jdbc:postgresql://{host}:{port}/{db}'.format(host=self.host, \
@@ -36,7 +36,7 @@ class PostgresConnector(object):
         return df
     
     def get_reader(self, spark):
-        return spark.read       # DataFrameReader(spark)
+        return spark.read   # DataFrameReader(spark)
 
 
     def write_to_db(self, df, table, mode):
