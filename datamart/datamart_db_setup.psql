@@ -78,6 +78,7 @@ CREATE TABLE Actor2Geo_Dim (
   "Actor2Geo_Type" varchar(6),
   "Actor2Geo_FullName" varchar(255),
   "Actor2Geo_CountryCode" varchar(6),
+  "Actor2Geo_ADM1Code" varchar(6),
   "Actor2Geo_Lat" float,
   "Actor2Geo_Long" float
 );
