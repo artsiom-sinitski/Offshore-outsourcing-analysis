@@ -1,7 +1,7 @@
 """
 Purpose: Retrieve the apropriate data slice from the Central Data Storage,
-create and populate the datamart tables (accroding to the defined 'star' schema),
-and then store tables in the Protests DataMart database.  
+         create and populate the datamart tables (according to 'star' schema),
+         and then store tables content in the Protests DataMart database.  
 Author: Artsiom Sinitski
 Email:  artsiom.vs@gmail.com
 Date: 07/02/2020
@@ -41,13 +41,9 @@ class GenerateAndSaveDataToDatamart(object):
 
 
 
-    #TODO:
-    # Read data by a date period and saving it to a temp parquet file (when in "manual" run mode)
     def read_data_from_central_storage(self, query):
         connector = PostgresConnector(EndPoint.CENTRAL_STORAGE.value)
         df = connector.read_from_db(self.spark, query)
-        # df.printSchema()
-        # df.show(5, True)
         return df
 
 
@@ -55,8 +51,6 @@ class GenerateAndSaveDataToDatamart(object):
     def read_data_from_datamart(self, query):
         connector = PostgresConnector(EndPoint.PROTESTS_DATAMART.value)
         df = connector.read_from_db(self.spark, query)
-        # df.printSchema()
-        # df.show(5, True)
         return df
 
 
@@ -82,16 +76,18 @@ class GenerateAndSaveDataToDatamart(object):
         table_cols_dict["Actor1_Dim"] = ["actor1_id", "Actor1Code", "Actor1Name", "Actor1CountryCode", \
                                        "Actor1KnownGroupCode", "Actor1EthnicCode", "Actor1Religion1Code", \
                                        "Actor1Religion2Code", "Actor1Type1Code"]
-
+        
         table_cols_dict["Actor2_Dim"] = ["actor2_id", "Actor2Code", "Actor2Name", "Actor2CountryCode", \
                                          "Actor2KnownGroupCode", "Actor2EthnicCode", "Actor2Religion1Code", \
                                          "Actor2Religion2Code", "Actor2Type1Code"]
         
-        table_cols_dict["Actor1Geo_Dim"] = ["actor1geo_id", "Actor1Geo_Type", "Actor1Geo_FullName", "Actor1Geo_CountryCode", \
-                                            "Actor1Geo_ADM1Code", "Actor1Geo_Lat", "Actor1Geo_Long"]
+        table_cols_dict["Actor1Geo_Dim"] = ["actor1geo_id", "Actor1Geo_Type", "Actor1Geo_FullName", \
+                                            "Actor1Geo_CountryCode", "Actor1Geo_ADM1Code", \
+                                            "Actor1Geo_Lat", "Actor1Geo_Long"]
 
-        table_cols_dict["Actor2Geo_Dim"] = ["actor2geo_id", "Actor2Geo_Type", "Actor2Geo_FullName", "Actor2Geo_CountryCode", \
-                                            "Actor2Geo_ADM1Code", "Actor2Geo_Lat", "Actor2Geo_Long"]
+        table_cols_dict["Actor2Geo_Dim"] = ["actor2geo_id", "Actor2Geo_Type", "Actor2Geo_FullName", \
+                                            "Actor2Geo_CountryCode", "Actor2Geo_ADM1Code", \
+                                            "Actor2Geo_Lat", "Actor2Geo_Long"]
         
         table_cols_dict["ActionGeo_Dim"] = ["actiongeo_id", "ActionGeo_Type", "ActionGeo_FullName",  \
                                             "ActionGeo_CountryCode", "ActionGeo_Lat", "ActionGeo_Long"]
@@ -101,15 +97,24 @@ class GenerateAndSaveDataToDatamart(object):
 
 
     def populate_datamart_tables(self, gdelt_events_df):
-        """Takes ... and pulls in data for the fact and dimentions tables.
+        """ Loads the data from 'gdelt_events' and 'gdelt_msntions' tables and
+            breaks it up and loads into the fact and dimentions tables of datamart db.
         Args:
-            gdelt_events_df (fata frame): contains data from the GDELT events table.
+            gdelt_events_df (data frame): contains data from the 'GDELT_events' table.
         Returns:
             None.
         """        
         table_cols_dict = self.initialize_table_columns()
 
         try:
+            # need to cast Longitude and Latitude columns to double precision datatype first
+            gdelt_events_df = gdelt_events_df.withColumn("Actor1Geo_Lat", F.col("Actor1Geo_Lat").cast("double")) \
+                                             .withColumn("Actor1Geo_Long", F.col("Actor1Geo_Long").cast("double")) \
+                                             .withColumn("Actor2Geo_Lat", F.col("Actor2Geo_Lat").cast("double")) \
+                                             .withColumn("Actor2Geo_Long", F.col("Actor2Geo_Long").cast("double")) \
+                                             .withColumn("ActionGeo_Lat", F.col("ActionGeo_Lat").cast("double")) \
+                                             .withColumn("ActionGeo_Long", F.col("ActionGeo_Long").cast("double"))
+
             # Retrieve GlobalEventIds from GDELT Events dataframe
             event_id_rows = gdelt_events_df.select("GlobalEventId").collect()
             # 'event_ids_list' will be a string of ids, ex: "'926862758','926862759', ..."
@@ -117,23 +122,20 @@ class GenerateAndSaveDataToDatamart(object):
             # convert the list to a string of comma-separated ids
             event_ids_list = ",".join(event_ids_list)
 
-            # First, ppopulate the "Event_Fact" and get all composite primary key pieces back
+            # First, populate the "Event_Fact" and get all composite primary key pieces back
             table_name = "Event_Fact"
             cols = table_cols_dict[table_name]
             df = gdelt_events_df.select(*cols)
 
             self.save_table_to_datamart(df, table_name)
-            print("\n=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
-            logging.info("\n=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
+            print("=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
+            logging.info("=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
             
             column_names = "event_id, actor1_id, actor2_id, actor1geo_id, " \
-                        "actor2geo_id, actiongeo_id, \"GlobalEventId\""
+                           "actor2geo_id, actiongeo_id, \"GlobalEventId\""
             where_clause = " where \"GlobalEventId\" in (" + event_ids_list + ")"
             query = "(select " + column_names + " from " + table_name + where_clause + ") event_dims_ids"
             event_fact_df = self.read_data_from_datamart(query)
-
-            print("======= Event Facts DataFrame: ")
-            event_fact_df.show()
 
             for table in table_cols_dict.keys():
                 if table == "Event_Fact":
@@ -151,12 +153,12 @@ class GenerateAndSaveDataToDatamart(object):
                                         .withColumn("MentionDocLen", F.col("MentionDocLen").cast("int")) \
                                         .withColumn("MentionDocTone", F.col("MentionDocTone").cast("int"))
                 else:
-                    df = gdelt_events_df.join(event_fact_df, "GlobalEventId", 'inner') \
-                                        .select(*cols)
-                df.show()
+                    df = gdelt_events_df.join(event_fact_df, "GlobalEventId", 'inner').select(*cols)
+
                 self.save_table_to_datamart(df, table)
-                print("\n=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
-                logging.info("\n=== Saved to " + table_name + " table:\n" + df._jdf.showString(20, 20, False))
+                print("=== Saved to " + table + " table:\n" + df._jdf.showString(20, 20, False))
+                logging.info("=== Saved to " + table + " table:\n" + df._jdf.showString(20, 20, False))
+
         except IOError as err:
             sys.stderr.write("IO error when saving to database: {0}".format(err))
             logging.warning("IO error when saving to database: {0}".format(err))
@@ -199,7 +201,10 @@ def main():
         date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
         timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
 
-        #TODO: need to implement this
+        #TODO:
+        # need to implement the "manual" mode functionality
+        # possible approach would include retrieving data by 1 day
+        # check pointing via parque file, processing and saving it to db
         if run_type == "manual":
             table_name = "gdelt_events"
             start_date = '1900-01-01'
