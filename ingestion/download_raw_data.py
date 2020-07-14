@@ -15,7 +15,7 @@ import boto3
 #import lxml.html as lh
 
 
-class DownloadFiles():
+class DownloadRawData():
 
     def __init__(self, run_type, timestamp):
         """
@@ -110,7 +110,7 @@ class DownloadFiles():
         return file_list
 
 
-    def download_data(self, base_url, bucket_name, file_list):
+    def download_raw_data(self, base_url, bucket_name, file_list):
         """
         Downloads data files from GDELT web site, saves it to an EC2 instance
         then unzips the files and saves to the AWS S3 storage
@@ -122,6 +122,7 @@ class DownloadFiles():
         Returns:
             None.
         """
+        f_counter = 0
         for file in file_list:
             # download files from the GDELT website
             r = requests.get(base_url + file) # create HTTP response object 
@@ -143,9 +144,9 @@ class DownloadFiles():
                 s3 = boto3.resource(service_name = 's3')
                 s3.create_bucket(Bucket=bucket_name)
                 s3.meta.client.upload_file(file_path, bucket_name, key)
-
-                print("'" + key + "'" + " added to S3.")
-                logging.info("'" + key + "'" + " added to S3.")
+                f_counter += 1
+                print("\n>>>>> #" + str(f_counter) + " - '" + key + "'" + " added to AWS S3.")
+                logging.info("\n>>>>> #" + str(f_counter) + " - '" + key + "'" + " added to AWS S3.")
 
                 # delete both ziped/unzipped data files from the EC2 server
                 if os.path.exists(self.data_folder + key):
@@ -174,9 +175,9 @@ class DownloadFiles():
         print("Master file lines read: " + str(len(file_list)), end='\n')
         logging.info("Master file lines read: " + str(len(file_list)))
 
-        self.download_data(self.gdelt_base_url, self.s3_bucket_name, file_list)
+        self.download_raw_data(self.gdelt_base_url, self.s3_bucket_name, file_list)
 
-############################## End of class DownloadFiles #############################
+############################## End of class DownloadRawData #############################
 #######################################################################################
 
 def main():
@@ -188,7 +189,7 @@ def main():
         date_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
         timestamp = datetime_now.strftime("%d%m%Y%H%M%S")
 
-        process = DownloadFiles(run_type, timestamp)
+        process = DownloadRawData(run_type, timestamp)
 
         print("Date: " + date_time)
         logging.info("Date: " + date_time)
@@ -210,8 +211,8 @@ def main():
         print('\n========== GDELT data transfer completed! ==========\n')
         logging.info('\n========== GDELT data transfer completed! ==========\n')
     else:
-        sys.stderr.write("Correct usage: python3 download_files.py [schedule | manual]\n")
-        logging.warning("Correct usage: python3 download_files.py [schedule | manual]\n")
+        sys.stderr.write("Correct usage: python3 download_raw_data.py [schedule | manual]\n")
+        logging.warning("Correct usage: python3 download_raw_data.py [schedule | manual]\n")
     
 
 if __name__ == '__main__':

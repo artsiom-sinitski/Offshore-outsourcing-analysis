@@ -13,7 +13,7 @@ case $1 in
     ;;
 
     *)
-        echo "Correct command usage: ./run_spark.sh [--schedule | --manual]"
+        echo "Correct command usage: ./run_datamart_etl.sh [--schedule | --manual]"
         exit 1
     ;;
 esac
@@ -22,6 +22,4 @@ cd $FOLDER
 # Run script to decompress and process files on EC2 spark cluster
 /usr/local/spark/bin/spark-submit --master spark://10.0.0.8:7077 \
                                   --jars /home/ubuntu/usrlib/postgresql-42.2.9.jar \
-                                  preprocess_save_data.py $ARGS
-
-
+                                  generate_save_to_datamart.py $ARGS
