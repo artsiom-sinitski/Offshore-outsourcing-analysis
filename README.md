@@ -12,7 +12,7 @@
 8. [Author](README.md#author)
 
 # Introduction
-This project aims to create a simple and cost-conscious data warehouse solution for collecting, managing and analyzing the GDELT dataset, so that data analysts can discover, visualize and present their findings with ease. More detailed DWS project presentation can be viewed [here](docs/dws_presentation.pdf).
+This project aims to create a simple and cost-conscious data warehouse solution for collecting, managing and analyzing the GDELT dataset, so that data analysts can discover, visualize and present their findings with ease. More detailed DWS project presentation can be viewed [here](docs/DWS_Presentation.pdf).
 
 
 # Data Sources
@@ -48,7 +48,7 @@ Data Marts will pull a subset of data from the Central Storage (ex: events relat
 Further data analysis and visualization can be done via analytics dashboard (ex: Tableau) that can be connected to Datamarts.
 
 Also, it is possible to access the Central Storage data directly through the Web API.
- 
+
 Daily updates of the current GDELT data are downloaded and combined with the historical data in the Central Storage and Data Marts by the Apache Airflow workflow orchestration engine during the times when business activities are minimal.
 
 
