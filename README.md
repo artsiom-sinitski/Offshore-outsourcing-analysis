@@ -44,9 +44,11 @@ Data Mart ETL (red arrows) connects the Core and Data Mart layers and performs t
   2. Model the data to comply with the Star schema used in the Data Mart. The Star Schema enables faster and easier and more specialized data analysis due to relativley small size fo the data set stored.
   3. Load tansformed data into the Data Mart (PostgreSQL database).
 
-Data Marts will pull a subset of data from the Central Storage (ex: events related to protests only). These subsets are much smaller in size and thus, the speed of performing data retrival is much greater. Datamart data model is defined by the [Star](/docs/DWS_datamart_schema.png) schema, where dataset is broken down into separate 'Fact' and 'Dimentions' table.
+Data Marts will pull a subset of data from the Central Storage (ex: events related to protests only). These subsets are much smaller in size and thus, the speed of performing data retrival is much greater. Datamart data model is defined by the **[Star](/docs/DWS_datamart_schema.png) schema**, where dataset is broken down into separate 'Fact' and 'Dimentions' table.
 Further data analysis and visualization can be done via analytics dashboard (ex: Tableau) that can be connected to Datamarts.
-Also, it is possible to access the Central Storage data directly through the Web API.  
+
+Also, it is possible to access the Central Storage data directly through the Web API.
+ 
 Daily updates of the current GDELT data are downloaded and combined with the historical data in the Central Storage and Data Marts by the Apache Airflow workflow orchestration engine during the times when business activities are minimal.
 
 
