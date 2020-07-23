@@ -12,7 +12,7 @@
 8. [Author](README.md#author)
 
 # Introduction
-This project aims to create a simple and cost-conscious data warehouse solution for collecting, managing and analyzing the GDELT dataset, so that data analysts can discover, visualize and present their findings with ease. More detailed DWS project presentation can be viewed [here](docs/DWS_Presentation.pdf).
+This project aims to create a simple and cost-conscious data warehouse solution for collecting, managing and analyzing the GDELT dataset, so that data analysts can discover, visualize and present their findings with ease. My Insight DWS project presentation can be viewed [here](docs/DWS_Presentation.pdf).
 
 
 # Data Sources
